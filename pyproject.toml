@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aidataeco"
-version = "1.0.0"
+version = "2.0.0"
 description = "Wann ist das Datennetz gut genug für KI? Ausführbares Modell zur wissenschaftlichen Arbeit"
 authors = [
     { name = "Stephan Epp" }
@@ -17,11 +17,19 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# YAML-Spezifikationen (JSON funktioniert ohne Zusatzpaket).
+yaml = [
+    "pyyaml",
+]
 dev = [
     "pytest",
     "pytest-cov",
     "coverage",
+    "pyyaml",
 ]
+
+[project.scripts]
+aidataeco = "aidataeco.cli:main"
 
 [tool.setuptools]
 # Importname `aidataeco`: `src` ist als Paketname mehrdeutig (auch das Referenzprojekt nutzt ihn).

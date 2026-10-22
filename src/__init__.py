@@ -9,6 +9,11 @@ Module (Abschnitte der Arbeit in Klammern):
 * :mod:`evaluation` – Testfragen, Bestehensquote, erklärter Anteil, Provenance-Abdeckung
 * :mod:`integration` – Auswahl von Datenquellen mit dem Solver aus ``subgraph-sat-solver-econ``
 * :mod:`experiment` – reproduzierbares Protokoll von Eingaben, Konfiguration, Versionen, Resultaten
+* :mod:`parsing`, :mod:`spec` – strenges Einlesen maschinenlesbarer Spezifikationen und Antworten
+* :mod:`provider` – Schnittstelle zur KI-Anwendung (Referenzfragen); Adapter liefern nur eine Funktion
+* :mod:`report` – Freigabebericht: abgeleitete Nachweise und Freigabehindernisse (Abschnitt „Operationalisierung")
+* :mod:`compare` – Regressionsvergleich zweier Berichte über die Zeit
+* :mod:`cli` – Kommandozeile ``python -m aidataeco report|compare``
 * :mod:`casestudy` – illustrative Fallstudie „Warum sinkt die Marge?"
 
 Entscheider, Schaltkreise und Wohlfahrtsformeln werden **nicht** neu implementiert, sondern aus dem

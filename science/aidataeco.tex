@@ -13,6 +13,8 @@
 \usepackage{xcolor}
 \usepackage{enumitem}
 \usepackage{microtype}
+% Zeilenumbruch: verhindert Überläufe über den rechten Rand, wo die Silbentrennung nicht reicht.
+\setlength{\emergencystretch}{12em}
 \geometry{margin=2.5cm}
 \setlength{\tabcolsep}{3pt}
 
@@ -40,6 +42,7 @@
 \newcommand{\bits}{\{0,1\}}
 \newcommand{\NN}{\mathbb{N}}
 \newcommand{\RR}{\mathbb{R}}
+\newcommand{\QQ}{\mathbb{Q}}
 \newcommand{\cP}{\mathrm{P}}
 \newcommand{\cNP}{\mathrm{NP}}
 \newcommand{\E}{\mathbb{E}}
@@ -59,7 +62,7 @@ Diese Arbeit untersucht, wann das Datennetz eines Unternehmens für eine konkret
 \section{Einleitung}
 Die drei leitenden Gedanken dieser Arbeit sind eng miteinander verbunden. Erstens hängt Vertrauen in eine Antwort nicht davon ab, ob sie vollkommen fehlerfrei ist, sondern davon, ob ein möglicher Fehler für den konkreten Verwendungszweck klein genug ist. Zweitens bezeichnet das Datennetz mehr als die Summe gespeicherter Daten: Entscheidend sind auch Verknüpfungen, Zugriffswege, gemeinsame Definitionen und Aktualität. Dasselbe KI-Modell kann deshalb auf einem gut verbundenen Netz nützliche und auf einem fragmentierten Netz irreführende Antworten geben. Drittens können KI-Antworten bereits vor vollständiger Datenreife als Hinweise und Gegenprüfung der eigenen wirtschaftlichen Analyse nützlich sein.
 
-Diese Perspektive vermeidet zwei Extreme: KI-Antworten weder blind als Wahrheit zu übernehmen noch den Einsatz bis zu einer unerreichbaren Perfektion der Daten aufzuschieben. Stattdessen werden Nutzung und Autonomie nach den möglichen Folgen eines Fehlers gestuft. Die Arbeit führt zunächst in die Lücke zwischen KI-Ambition und Datenreife ein und erläutert eine Fallstudie zur sinkenden Marge. Danach folgen ein formales Modell, eine ökonomische Bedingung für ausreichende Qualität und ein Lernkreislauf für Abweichungen. Abschließend werden Data Products, Verantwortlichkeiten, Umsetzungsschritte, Unternehmensgrößen, Messgrößen und eine Go-live-Checkliste behandelt.
+Diese Perspektive vermeidet zwei Extreme: KI-Antworten weder blind als Wahrheit zu übernehmen noch den Einsatz bis zu einer unerreichbaren Perfektion der Daten aufzuschieben. Stattdessen werden Nutzung und Autonomie nach den möglichen Folgen eines Fehlers gestuft. Die Arbeit führt zunächst in die Lücke zwischen KI-Ambition und Datenreife ein und erläutert eine Fallstudie zur sinkenden Marge. Danach folgen ein formales Modell, eine ökonomische Bedingung für ausreichende Qualität und ein Lernkreislauf für Abweichungen. Abschließend werden Data Products, Verantwortlichkeiten, Umsetzungsschritte, Unternehmensgrößen, Messgrößen, ein deterministisches Prüfverfahren mit Freigabebericht und Regressionsvergleich sowie eine Go-live-Checkliste behandelt.
 
 \section{Ausgangslage: KI-Ambition und Datenreife}
 \label{sec:starting-point}
@@ -481,6 +484,149 @@ Sei $T=\{(q_j,y_j^*)\}_{j=1}^n$ eine Menge repräsentativer Testfragen mit fachl
 {\sum_{j=1}^n w_j}.
 \]
 Dabei bezeichnet $\mathbf{1}[\cdot]$ die Indikatorfunktion. Für Ursachenanalysen sollte zusätzlich der erklärte Anteil am bekannten Gesamteffekt ausgewiesen werden. Beide Kennzahlen beantworten verschiedene Fragen: Besteht die Antwort einen Toleranztest, und deckt sie die wesentlichen Ursachen ab? Die Referenzen und Toleranzen verantwortet der Use-Case Owner gemeinsam mit den fachlich zuständigen Personen.
+
+\section{Operationalisierung: Freigabebericht und Regression}
+\label{sec:operationalization}
+
+Die bisherigen Abschnitte beschreiben die Kriterien für ein ausreichendes Datennetz in Worten, Tabellen und Formeln. Dieser Abschnitt macht daraus ein deterministisches Prüfverfahren: Data Product und Anwendungsfall werden maschinenlesbar spezifiziert, messbare Nachweise werden aus den Daten \emph{abgeleitet} statt erklärt, und das Ergebnis ist die Menge der Freigabehindernisse. Ein späterer Bericht lässt sich mit einem früheren vergleichen. Das Verfahren ist im Verzeichnis \texttt{src/} umgesetzt (Module \texttt{spec}, \texttt{report}, \texttt{compare}, \texttt{cli}); formuliert werden hier nur Eigenschaften, die sich beweisen lassen. Alle Größen sind exakt rational ($\QQ$); es gibt weder Zufall noch Gleitkomma noch einen Zugriff auf die Systemuhr (der Stichtag ist Eingabe).
+
+\subsection{Spezifikation und Eingaben}
+
+\begin{definition}[Spezifikation]\label{def:spec}
+Eine \emph{Spezifikation} ist ein Tupel
+\[
+\Sigma=(P,R,K,\rho,s,\beta,\theta,T,o)
+\]
+mit
+\begin{itemize}
+\item einem Data Product $P=(V_P,E_P,\mathcal M,\ell)$ gemäß Abschnitt~\ref{sec:formal},
+\item geforderten Verknüpfungen $R\subseteq V\times V$ und einer endlichen Menge $K$ von Kennzahlbegriffen,
+\item $\rho=(\rho_d,\rho_p,\rho_u)$: für Data Owner, Data Product Owner und Use-Case Owner je eine benannte Person oder $\bot$ (nicht benannt),
+\item einer angestrebten Stufe $s\in\{1,2,3,4\}$ (Tabelle~\ref{tab:reliability-levels}),
+\item einem optionalen Error Budget $\beta=(W,\varepsilon)$ mit $W\ge 0$, $\varepsilon>0$ oder $\beta=\bot$ sowie einer optionalen Mindest-Bestehensquote $\theta\in[0,1]\cup\{\bot\}$,
+\item Referenzfragen $T=\bigl((q_j,y_j^*,\delta_j,w_j)\bigr)_{j=1}^n$ mit paarweise verschiedenen $q_j$, $\delta_j,w_j\ge 0$ und $\sum_j w_j>0$ falls $n\ge 1$ (Abschnitt~\ref{sec:metrics}),
+\item erklärten organisatorischen Nachweisen $o=(o_{\mathrm{hum}},o_{\mathrm{app}},o_{\mathrm{log}},o_{\mathrm{int}})\in\{0,1\}^4$: ein Mensch entscheidet, ausdrückliche Freigabe, Protokollierung, Eingriffspfad.
+\end{itemize}
+\end{definition}
+
+Zu einem Prüflauf gehören außerdem die Antworten $a=\bigl((\hat y_j,\Pi_j)\bigr)_{j=1}^n$ mit $\hat y_j\in\QQ\cup\{\bot\}$ ($\bot$: keine Antwort) und Provenance $\Pi_j$ (oder $\bot$), ein Stichtag $\tau$ und ein erwarteter Verlust $\bar L\in\QQ_{\ge 0}\cup\{\bot\}$, also eine Schätzung von $\E[L(\hat y,y^*)]$ aus Abschnitt~\ref{sec:error}. Der Wert $\bar L$ wird nicht vom Verfahren geschätzt, sondern geliefert.
+
+\begin{bemerkung}[Messen statt Erklären]
+Kennzahlen, Provenance, Qualität und Error Budget dürfen in $\Sigma$ nicht als erfüllt erklärt werden; eine Spezifikation, die sie enthält, wird abgelehnt. Erklärbar sind nur die vier Komponenten von $o$, weil sie organisatorische Tatsachen sind, die sich nicht aus Daten ablesen lassen. Die Richtigkeit dieser Erklärungen bleibt Sache der Organisation.
+\end{bemerkung}
+
+\subsection{Abgeleitete Nachweise}
+
+Für ein Element $(u,v)\in R$ heißt $u$ mit $v$ \emph{nachweisbar verbunden}, wenn $u,v\in V_P$ gilt und im ungerichteten Graphen $\bigl(V_P,\{\{x,y\}: (x\to y,\varphi)\in E_P\}\bigr)$ ein Weg von $u$ nach $v$ existiert. Eine Provenance $\Pi_j$ heißt \emph{vollständig}, wenn sie mindestens eine Quelle, einen Datenstichtag und mindestens eine angewendete Regel enthält (Definition der Provenance in Abschnitt~\ref{sec:formal}); fehlt $\Pi_j$ ganz, gilt sie als unvollständig. Ein Knoten $v\in V_P$ mit letzter Aktualisierung $t_v$ und Aktualisierungsfrequenz $f$ (in Tagen, Teil des Labels) heißt \emph{aktuell zum Stichtag $\tau$}, wenn $t_v\neq\bot$ und $0\le\tau-t_v\le f$ gilt; ein unbekanntes oder in der Zukunft liegendes $t_v$ ist demnach nicht aktuell. Mit
+\[
+c(a)=\frac{\bigl|\{\,j:\Pi_j\text{ vollständig}\,\}\bigr|}{n},\qquad
+p(a)=\frac{\sum_{j=1}^n w_j\,\mathbf 1\!\left[\hat y_j\neq\bot\ \wedge\ |\hat y_j-y_j^*|\le\delta_j\right]}{\sum_{j=1}^n w_j}
+\]
+(für $n\ge 1$) bezeichnen $c$ die Provenance-Abdeckung und $p$ die gewichtete Bestehensquote aus Abschnitt~\ref{sec:metrics}; eine fehlende Antwort besteht den Test nie.
+
+\begin{definition}[Evidenzvektor]\label{def:evidence}
+Der \emph{Evidenzvektor} $e=(e_f)_{f\in\mathcal F}\in\{0,1\}^{\mathcal F}$ über der Indexmenge $\mathcal F=\{\mathrm{kpi},\mathrm{prov},\mathrm{qual},\mathrm{err},\mathrm{hum},\mathrm{app},\mathrm{log},\mathrm{int}\}$ ist festgelegt durch
+\begin{align*}
+e_{\mathrm{kpi}}=1&\iff K\neq\emptyset\ \wedge\ \text{alle }(u,v)\in R\text{ sind nachweisbar verbunden}\\
+&\qquad\wedge\ \text{jedes }k\in K\text{ ist in }\mathcal M\text{ definiert (auch über ein Synonym)},\\
+e_{\mathrm{prov}}=1&\iff n\ge 1\ \wedge\ c(a)=1,\\
+e_{\mathrm{qual}}=1&\iff V_P\neq\emptyset\ \wedge\ q_v\neq\bot\text{ für alle }v\in V_P,\\
+e_{\mathrm{err}}=1&\iff \beta\neq\bot\ \wedge\ \bar L\neq\bot\ \wedge\ \bar L\le\varepsilon W,
+\end{align*}
+sowie $e_{\mathrm{hum}}=o_{\mathrm{hum}}$, $e_{\mathrm{app}}=o_{\mathrm{app}}$, $e_{\mathrm{log}}=o_{\mathrm{log}}$ und $e_{\mathrm{int}}=o_{\mathrm{int}}$.
+\end{definition}
+
+Die Definition setzt den Grundsatz der Arbeit um, dass ein fehlender Nachweis selbst ein Ergebnis ist: Jede Komponente ist nur dann $1$, wenn der Nachweis tatsächlich vorliegt. Die Bedingung für $e_{\mathrm{err}}$ ist die ökonomische Gut-genug-Bedingung aus Abschnitt~\ref{sec:error}.
+
+\subsection{Freigabehindernisse}
+
+Die Anforderungen wachsen mit der Stufe. Sei $F_1=\emptyset$, $F_2=\{\mathrm{kpi}\}$, $F_3=\{\mathrm{prov},\mathrm{qual},\mathrm{err}\}$, $F_4=\{\mathrm{app},\mathrm{log},\mathrm{int}\}$ und $\mathrm{Req}(s)=\bigcup_{j\le s}F_j$.
+
+\begin{definition}[Freigabehindernisse]\label{def:blockers}
+Zu Spezifikation, Antworten, Stichtag und erwartetem Verlust ist die Menge $B(s)=B_1\cup B_2(s)\cup B_3(s)\cup B_4(s)\cup B_5$ der \emph{Freigabehindernisse} die (nach Art getaggte, also disjunkte) Vereinigung von
+\begin{align*}
+B_1&=\{\,(\mathrm{Rolle},r): \rho_r=\bot,\ r\in\{d,p,u\}\,\},\\
+B_2(s)&=\{\,f\in\mathrm{Req}(s): e_f=0\,\},\\
+B_3(s)&=\{\mathrm{hum}\}\ \text{falls } s=3\text{ und }e_{\mathrm{hum}}=0,\ \text{sonst }\emptyset,\\
+B_4(s)&=\{\,(\mathrm{Aktualität},v): v\in V_P\text{ nicht aktuell zum Stichtag }\tau\,\}\ \text{falls }s\ge 3,\ \text{sonst }\emptyset,\\
+B_5&=\{\mathrm{pass}\}\ \text{falls }\theta\neq\bot\text{ und }(n=0\text{ oder }p(a)<\theta),\ \text{sonst }\emptyset.
+\end{align*}
+\end{definition}
+
+$B_3$ entspricht der Tabelle~\ref{tab:reliability-levels}: Auf Stufe~3 entscheidet ein Mensch; auf Stufe~4 entfällt diese Forderung zugunsten von Freigabe, Protokollierung und Eingriffspfad. Die leere Menge $B=\emptyset$ ist keine Freigabe, sondern nur die Feststellung, dass keine der hier formalisierten Bedingungen verletzt ist. Sie ist \emph{notwendig, nicht hinreichend}; die Freigabe verantwortet der Use-Case Owner.
+
+\begin{satz}[Antitonie in den Nachweisen]\label{thm:antitone}
+Seien $e\le e'$ komponentenweise und alle übrigen Eingaben gleich. Dann gilt $B(s;e')\subseteq B(s;e)$ für jede Stufe $s$.
+\end{satz}
+\begin{proof}
+$B_1$, $B_4$ und $B_5$ hängen von $e$ nicht ab und stimmen für $e$ und $e'$ überein. Sei $f\in B_2(s;e')$, also $f\in\mathrm{Req}(s)$ und $e'_f=0$. Aus $e_f\le e'_f=0$ folgt $e_f=0$, also $f\in B_2(s;e)$. Sei $\mathrm{hum}\in B_3(s;e')$, also $s=3$ und $e'_{\mathrm{hum}}=0$; dann ist $e_{\mathrm{hum}}\le 0$, also $\mathrm{hum}\in B_3(s;e)$. Damit ist jede Komponente von $B(s;e')$ in der entsprechenden Komponente von $B(s;e)$ enthalten.
+\end{proof}
+
+\begin{satz}[Stufenmonotonie bis auf die Aufsicht]\label{thm:levels}
+Für $s\le s'$ und gleiche Eingaben gilt $B(s)\subseteq B(s')\cup\{\mathrm{hum}\}$.
+\end{satz}
+\begin{proof}
+$B_1$ und $B_5$ hängen nicht von der Stufe ab. Aus $s\le s'$ folgt $\mathrm{Req}(s)\subseteq\mathrm{Req}(s')$ und damit $B_2(s)\subseteq B_2(s')$. Ist $s\ge 3$, so ist auch $s'\ge 3$; also gilt $B_4(s)\subseteq B_4(s')$ (für $s<3$ ist $B_4(s)=\emptyset$). Das einzige Element, das in $B(s)$, aber nicht in $B(s')$ liegen kann, ist $\mathrm{hum}\in B_3(s)$ (nämlich für $s=3$, $s'=4$); es steht rechts in der Vereinigung.
+\end{proof}
+
+\begin{korollar}\label{cor:levels}
+Ist $B(s')=\emptyset$, so gilt $B(s)\subseteq\{\mathrm{hum}\}$ für alle $s\le s'$. Eine Stufe kann also frei von Hindernissen sein, während eine niedrigere nur an der Forderung scheitert, dass ein Mensch entscheidet; das ist kein Widerspruch, sondern Folge davon, dass Stufe~4 diese Forderung durch Freigabe, Protokoll und Eingriffspfad ersetzt.
+\end{korollar}
+\begin{proof}
+Satz~\ref{thm:levels} liefert $B(s)\subseteq B(s')\cup\{\mathrm{hum}\}=\{\mathrm{hum}\}$.
+\end{proof}
+
+\begin{satz}[Unbekanntes zählt nie als Erfolg]\label{thm:conservative}
+Die Eingaben $\Phi'$ gehen aus $\Phi$ durch genau eine der folgenden Ersetzungen hervor:
+(a)~$q_v\mapsto\bot$ für ein $v\in V_P$; (b)~$t_v\mapsto\bot$ für ein $v\in V_P$; (c)~$\bar L\mapsto\bot$; (d)~in einer Provenance $\Pi_j$ wird die Quelle, der Datenstichtag oder die Regel entfernt oder $\Pi_j\mapsto\bot$ gesetzt; (e)~$\hat y_j\mapsto\bot$ für ein $j$. Dann gilt $B(\Phi)\subseteq B(\Phi')$.
+\end{satz}
+\begin{proof}
+$B$ hängt von den Eingaben nur über drei Größen ab: den Evidenzvektor $e$ (über $B_2$ und $B_3$), die Menge $\mathrm{Fr}\subseteq V_P$ der aktuellen Knoten (über $B_4=\{(\mathrm{Aktualität},v):v\in V_P\setminus\mathrm{Fr}\}$) und die Bestehensquote $p$ (über $B_5$). $B$ ist antiton in $e$ (Satz~\ref{thm:antitone}), antiton in $\mathrm{Fr}$ (eine kleinere Menge $\mathrm{Fr}$ hat ein größeres Komplement) und antiton in $p$: Die Bedingung $p(a)<\theta$ ist für kleineres $p$ leichter erfüllt, und $n=0$ hängt von den Ersetzungen nicht ab. Es genügt daher zu zeigen, dass jede Ersetzung $e$, $\mathrm{Fr}$ und $p$ höchstens verkleinert, ohne sie zu vergrößern:
+\begin{itemize}
+\item (a): Die Bedingung „$q_v\neq\bot$ für alle $v\in V_P$“ kann nur von wahr zu falsch wechseln, also $e'_{\mathrm{qual}}\le e_{\mathrm{qual}}$; $e_{\mathrm{kpi}},e_{\mathrm{prov}},e_{\mathrm{err}}$, $\mathrm{Fr}$ und $p$ ändern sich nicht.
+\item (b): Aktuell zu sein setzt $t_v\neq\bot$ voraus; also $\mathrm{Fr}'\subseteq\mathrm{Fr}$, alles andere bleibt gleich.
+\item (c): $e_{\mathrm{err}}$ verlangt $\bar L\neq\bot$; also $e'_{\mathrm{err}}\le e_{\mathrm{err}}$.
+\item (d): Die Vollständigkeit von $\Pi_j$ kann nur von wahr zu falsch wechseln; damit gilt $c(a')\le c(a)$ und folglich $e'_{\mathrm{prov}}\le e_{\mathrm{prov}}$ (denn $e_{\mathrm{prov}}=1$ verlangt $c=1$).
+\item (e): Der Summand $w_j\mathbf 1[\hat y_j\neq\bot\wedge\cdots]$ wird zu $0$, während der Nenner $\sum_j w_j$ unverändert bleibt; wegen $w_j\ge 0$ gilt $p(a')\le p(a)$.
+\end{itemize}
+$B_1$ und die Komponente $e_{\mathrm{hum}}$ sind von allen fünf Ersetzungen unberührt.
+\end{proof}
+
+\begin{satz}[Reproduzierbarkeit]\label{thm:repro}
+Bericht und Fingerprint sind Funktionen der Eingaben: Zwei Prüfläufe mit denselben Eingaben (Spezifikation, Antworten, Stichtag, erwarteter Verlust, Versionen von Python und Abhängigkeiten) liefern denselben Bericht und denselben Fingerprint.
+\end{satz}
+\begin{proof}
+Jede Größe der Definitionen~\ref{def:evidence} und~\ref{def:blockers} ist eine Funktion der Eingaben; die Rechnung ist exakt rational und verwendet weder Zufall noch Systemzeit. Der Fingerprint ist der SHA-256-Wert einer kanonischen JSON-Serialisierung (sortierte Schlüssel, Brüche als Text) von Name, Spezifikation, Antworten, Stichtag, erwartetem Verlust und Versionen; Serialisierung und Hashfunktion sind deterministisch. Das Ergebnis des Laufs geht nicht in den Fingerprint ein, ist aber nach dem Gesagten selbst durch die Eingaben festgelegt.
+\end{proof}
+
+Die Umkehrung gilt nur eingeschränkt: Gleiche Fingerprints bedeuten gleiche kanonisch serialisierte Eingaben nur unter der Annahme, dass keine SHA-256-Kollision vorliegt.
+
+\subsection{Vergleich über die Zeit}
+
+Für Berichte $r$ desselben Data Products besteht der Messvektor aus sieben Komponenten: der Bestehensquote $p$, der Provenance-Abdeckung $c$ und der Zahl $u$ unbeantworteter Fragen (alle $\bot$, wenn $n=0$), sowie den Anzahlen offener Verknüpfungen, nicht aktueller Knoten (einschließlich unbekannter Aktualität), Knoten ohne bekannte Qualität und Freigabehindernisse $|B|$. Auf jeder Komponente ist eine totale Ordnung $\le_i$ „schlechter oder gleich“ festgelegt: Für $p$ und $c$ gilt $\bot\le_i x$ für alle $x$, sonst die übliche Ordnung; für alle anderen Komponenten gilt ebenfalls $\bot\le_i x$ für alle $x$, und für Zahlen $x,y\in\NN$ ist $x\le_i y$ genau dann, wenn $x\ge y$. Fehlender Nachweis ist also stets am schlechtesten.
+
+\begin{definition}[Regressionsfreiheit]\label{def:regression}
+Der Übergang vom früheren Bericht $r$ zum späteren Bericht $r'$ ist \emph{regressionsfrei}, geschrieben $r\sqsubseteq r'$, wenn \emph{erstens} $m_i(r)\le_i m_i(r')$ für jede Komponente $i$ gilt und \emph{zweitens} $B(r')\subseteq B(r)$ ist, also kein Freigabehindernis neu hinzukommt. Eine \emph{Regression} liegt vor, wenn $r\sqsubseteq r'$ nicht gilt.
+\end{definition}
+
+Dass zusätzlich $B(r')\subseteq B(r)$ verlangt wird, ist nötig: Ersetzt ein neues Hindernis ein behobenes, bleibt $|B|$ gleich, die Lage hat sich aber geändert.
+
+\begin{satz}[Quasiordnung]\label{thm:preorder}
+Die Relation $\sqsubseteq$ ist reflexiv und transitiv. Für jede Komponente gilt: $r\to r'$ ist eine Verbesserung genau dann, wenn $r'\to r$ eine Verschlechterung ist. Gilt $r\sqsubseteq r'$ und $r'\sqsubseteq r$, so stimmen alle Komponenten des Messvektors und die Mengen $B(r)$, $B(r')$ überein.
+\end{satz}
+\begin{proof}
+Reflexivität: $m_i(r)\le_i m_i(r)$, weil $\le_i$ eine Ordnung ist, und $B(r)\subseteq B(r)$. Transitivität: Aus $r\sqsubseteq r'$ und $r'\sqsubseteq r''$ folgt $m_i(r)\le_i m_i(r')\le_i m_i(r'')$, also $m_i(r)\le_i m_i(r'')$, sowie $B(r'')\subseteq B(r')\subseteq B(r)$. Spiegelung: Weil $\le_i$ total ist, bedeutet „Verbesserung“ $m_i(r)<_i m_i(r')$ und „Verschlechterung“ $m_i(r')<_i m_i(r)$; vertauscht man $r$ und $r'$, vertauschen sich die beiden Aussagen. Antisymmetrie: Aus $m_i(r)\le_i m_i(r')\le_i m_i(r)$ folgt $m_i(r)=m_i(r')$, aus $B(r')\subseteq B(r)\subseteq B(r')$ folgt $B(r)=B(r')$.
+\end{proof}
+
+\begin{bemerkung}[Grenzen des Vergleichs]
+Der Vergleich ist exakt und kennt keine Toleranz; Messrauschen (etwa bei kleinen Testmengen) modelliert er nicht. Außerdem ist $p$ nur vergleichbar, wenn die Referenzfragen gleich geblieben sind; sonst vermischt sich eine Änderung des Datennetzes mit einer Änderung des Testsatzes. Das Verfahren weist deshalb aus, ob sich die Eingaben (der Fingerprint) geändert haben, kann die beiden Ursachen aber nicht trennen.
+\end{bemerkung}
+
+\subsection{Beispiel und Grenzen}
+
+Für das Data Product „Sales Result 360“ der Fallstudie (Datei \texttt{examples/\allowbreak sales\_\allowbreak result\_\allowbreak 360.yaml}, illustrativ) liefert das Verfahren auf Stufe~3 mit $\bar L=380$ und $\varepsilon W=22$ sieben Freigabehindernisse: vier fehlende Nachweise (Kennzahlen nicht verknüpft, weil die Verbindung zwischen Auftrag und Fracht fehlt; Provenance unvollständig, weil die Antwort zum Produktmix fehlt; Qualität des Knotens ohne Angabe nicht messbar; Error Budget überschritten), zwei nicht aktuelle Knoten und eine Bestehensquote $p=1/6<\theta=3/4$. Das Ergebnis deckt sich mit der Aussage der Fallstudie, dass das Netz für diese Frage nicht ausreicht.
+
+Das Verfahren prüft nur, was in Definition~\ref{def:blockers} formalisiert ist. Es kontrolliert nicht, ob erklärte organisatorische Nachweise zutreffen, ob eine Quelle inhaltlich stimmt (Vollständigkeit der Provenance ist eine formale Eigenschaft), ob die gemeldeten Aktualisierungszeitpunkte korrekt sind und wie $\bar L$ geschätzt wurde. Die Stufen bleiben ein konzeptioneller Rahmen und keine Norm.
 
 \section{Checkliste: Ist diese KI-Antwort vertrauenswürdig?}
 \label{sec:checklist}

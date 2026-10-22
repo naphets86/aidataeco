@@ -1,0 +1,21 @@
+{
+  "Welcher Betrag der DB-II-Abweichung geht auf Expressfracht zurück (T€)?": {
+    "value": 0,
+    "provenance": {
+      "sources": [["orders", "1.2"]],
+      "cutoff": "2026-10-21",
+      "rules": ["DB II"]
+    }
+  },
+  "Welcher Betrag der DB-II-Abweichung geht auf den Produktmix zurück (T€)?": {
+    "value": null
+  },
+  "Welcher Betrag der DB-II-Abweichung geht auf gestiegene Rabatte zurück (T€)?": {
+    "value": 60,
+    "provenance": {
+      "sources": [["orders", "1.2"]],
+      "cutoff": "2026-10-21",
+      "rules": ["Rabattquote"]
+    }
+  }
+}

@@ -68,8 +68,9 @@ Die LaTeX-Arbeit entwickelt das Konzept in folgender Reihenfolge:
 7. **Verantwortung und Freigabe** – erläutert Data Owner, Data Product Owner und Use-Case Owner.
 8. **Schrittweises Vorgehen in der Praxis** – beschreibt den Aufbau und unterscheidet Schwerpunkte für Mittelstand und Großunternehmen.
 9. **Stolperfallen, Fortschrittsmessung und Checkliste** – gibt Prüffragen und Kennzahlen für die praktische Anwendung.
-10. **Diskussion, Schlussfolgerung und Glossar** – fasst die Grenzen des Modells und die zentralen Aussagen zusammen.
-11. **Anhang** – enthält formale Erweiterungen und eine Beweisskizze zur Value of Information (VOI).
+10. **Operationalisierung: Freigabebericht und Regression** – macht die Kriterien zu einem deterministischen Prüfverfahren mit maschinenlesbarer Spezifikation, abgeleiteten Nachweisen, Freigabehindernissen und Vergleich über die Zeit; die Eigenschaften werden bewiesen (steht im PDF vor der Checkliste).
+11. **Diskussion, Schlussfolgerung und Glossar** – fasst die Grenzen des Modells und die zentralen Aussagen zusammen.
+12. **Anhang** – enthält formale Erweiterungen und eine Beweisskizze zur Value of Information (VOI).
 
 Das vollständige Inhaltsverzeichnis steht auch am Anfang des [PDFs](science/aidataeco.pdf).
 
@@ -166,6 +167,7 @@ aidataeco/
 ├── pyproject.toml
 ├── src/
 ├── tests/
+├── examples/
 └── science/
     ├── aidataeco.tex
     ├── aidataeco.pdf
@@ -181,6 +183,7 @@ Im Arbeitsverzeichnis können zusätzlich lokale LaTeX-Hilfsdateien wie `.aux`, 
 | [`science/aidataeco.synctex.gz`](science/aidataeco.synctex.gz) | SyncTeX-Zuordnung zwischen PDF und TeX-Quelle für unterstützte Editoren. |
 | [`src/`](src) | Python-Bausteine zur Arbeit (siehe [Software und Tests](#software-und-tests)). |
 | [`tests/`](tests) | Automatisierte Tests mit `pytest`. |
+| [`examples/`](examples) | Beispiel-Spezifikation und Beispiel-Antworten zur Fallstudie für das Prüfwerkzeug. |
 | [`pyproject.toml`](pyproject.toml) | Paket-, Abhängigkeits-, pytest- und Coverage-Konfiguration. |
 | [`LICENSE`](LICENSE) | Nutzungsbedingungen für die Inhalte dieses Repositories. |
 | [`.gitignore`](.gitignore) | Ignorierte lokale Umgebungs- und Build-Dateien. |
@@ -266,7 +269,7 @@ git status --short
 
 ## Stand und Grenzen
 
-Dieses Repository ist in erster Linie ein **wissenschaftliches Dokumentationsprojekt**. Der Code in `src/` setzt Definitionen und Kennzahlen der Arbeit als geprüfte Bausteine um; er ist kein fertiges KI- oder Datenprodukt. Die formalen Modelle strukturieren die Argumentation; sie stellen weder ein zertifiziertes Messverfahren noch eine produktionsreife Governance-Lösung dar. Ein erfolgreicher Testlauf ist kein empirischer Wirksamkeitsnachweis und keine Freigabe für autonome Handlungen.
+Dieses Repository ist in erster Linie ein **wissenschaftliches Dokumentationsprojekt**. Der Code in `src/` setzt Definitionen und Kennzahlen der Arbeit als geprüfte Bausteine um und enthält ein Prüfwerkzeug für Freigabeberichte; er ist kein fertiges KI- oder Datenprodukt. Die formalen Modelle strukturieren die Argumentation; sie stellen weder ein zertifiziertes Messverfahren noch eine produktionsreife Governance-Lösung dar. Ein erfolgreicher Testlauf ist kein empirischer Wirksamkeitsnachweis und keine Freigabe für autonome Handlungen. Ebenso ist ein Freigabebericht ohne Hindernisse keine Freigabe, sondern nur die Feststellung, dass keine der formalisierten Bedingungen verletzt ist; organisatorische Nachweise werden erklärt, nicht überprüft.
 
 Die Fallstudie ist illustrativ und wird auf das zugrunde liegende Webinar zurückgeführt. Die dort genannten Prozentwerte werden in der Arbeit als Präsentationsangaben gekennzeichnet und nicht als unabhängig verifizierte Primärerhebung ausgegeben. Für Entscheidungen in einem Unternehmen wären geeignete interne Daten, fachlich geprüfte Referenzfälle und eine nachvollziehbare Fehlerbewertung erforderlich.
 
@@ -296,6 +299,31 @@ Die Arbeiten [2] und [3] sind ergänzende wissenschaftliche Vorarbeiten des Auto
 | `integration` | Auswahl von Datenquellen unter Budget und Abhängigkeiten (Erweiterung der VOI-Bedingung) |
 | `experiment` | reproduzierbares Protokoll von Eingaben, Konfiguration, Versionen, Resultaten |
 | `casestudy` | illustrative Fallstudie zur sinkenden Marge mit den Zahlen der Arbeit |
+| `parsing`, `spec` | strenges Einlesen von Spezifikation (JSON/YAML) und Antworten; messbare Nachweise dürfen nicht erklärt werden |
+| `provider` | Schnittstelle zur KI-Anwendung für die Referenzfragen (`ProviderError` = keine Antwort) |
+| `report` | Freigabebericht: abgeleitete Nachweise, Freigabehindernisse, Fingerprint, Markdown/JSON |
+| `compare` | Regressionsvergleich zweier gespeicherter Berichte |
+| `cli` | Kommandozeile `report` und `compare` |
+
+### Prüfwerkzeug: Freigabebericht und Monitoring
+
+Das Werkzeug setzt den Abschnitt „Operationalisierung" der Arbeit um. Eine Spezifikation (JSON oder YAML, Beispiel: [`examples/sales_result_360.yaml`](examples/sales_result_360.yaml)) beschreibt Datennetz, Data Product, Verantwortliche und den Anwendungsfall mit Stufe, Error Budget und Referenzfragen. Kennzahlen, Provenance, Qualität und Error Budget werden aus den Daten **abgeleitet**; in der Spezifikation erklärt werden nur die organisatorischen Nachweise (Mensch entscheidet, Freigabe, Protokollierung, Eingriffspfad).
+
+```bash
+# Bericht erstellen (Markdown auf der Standardausgabe; --format json für den Archivstand)
+python -m aidataeco report examples/sales_result_360.yaml \
+    --answers examples/answers_sales_result_360.json --today 2026-10-22 --expected-loss 380
+
+# Zwei gespeicherte Berichte vergleichen (Monitoring über die Zeit)
+python -m aidataeco report SPEC --answers ANTWORTEN --format json --output bericht-2026-10.json
+python -m aidataeco compare bericht-2026-09.json bericht-2026-10.json
+```
+
+Ohne `--answers` gilt jede Referenzfrage als unbeantwortet. Exit-Codes: `0` kein Freigabehindernis bzw. keine Regression, `1` Freigabehindernis bzw. Regression, `2` ungültige Eingabe. Damit lässt sich der Bericht in eine Pipeline einbinden. Der Fingerprint eines Berichts bindet Spezifikation, Antworten, Stichtag, erwarteten Verlust und Versionen; das Ergebnis geht nicht ein.
+
+Die KI-Anwendung wird über eine Funktion `Frage -> Answer` angebunden (`provider.AnswerProvider`); ein Adapter, der keine Antwort liefern kann, löst `ProviderError` aus, das zählt als unbeantwortet. Konkrete Adapter (etwa MCP) und eine Web-Schicht (FastAPI) sind bewusst nicht Teil des Kerns. YAML benötigt PyYAML (`pip install -e ".[yaml]"`, in `.[dev]` enthalten); JSON funktioniert ohne Zusatzpaket.
+
+Der Bericht ist keine Freigabe. Er weist Hindernisse aus; die Entscheidung trifft der Use-Case Owner. Der Vergleich ist exakt und ohne Toleranz und ist nur sinnvoll, wenn die Referenzfragen gleich geblieben sind (siehe Arbeit, Abschnitt „Vergleich über die Zeit").
 
 ### Wiederverwendung von subgraph-sat-solver-econ
 

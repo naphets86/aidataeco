@@ -1,0 +1,66 @@
+# Beispiel-Spezifikation „Sales Result 360" zur Fallstudie „Warum sinkt die Marge?".
+# Die Angaben sind illustrativ (siehe Arbeit, Abschnitt Fallstudie) und keine Unternehmensdaten.
+network:
+  nodes:
+    - name: orders
+      attributes: [order_id, customer, product_id, revenue, discount]
+      quality: "19/20"
+      updated: 2026-10-21
+    - name: freight
+      attributes: [delivery_id, express_cost]
+      quality: "4/5"
+      updated: 2026-10-01
+    - name: products
+      attributes: [product_id, product_group]
+  edges:
+    - {source: orders, target: products, transformation: "orders.product_id = products.product_id"}
+
+product:
+  name: Sales Result 360
+  nodes: [orders, freight, products]
+  edges:
+    - {source: orders, target: products, transformation: "orders.product_id = products.product_id"}
+  meaning:
+    definitions:
+      DB I: Umsatz abzüglich Herstellkosten
+      DB II: DB I abzüglich Fracht und Vertriebseinzelkosten
+      Rabattquote: Rabatt im Verhältnis zum Bruttoumsatz
+      Frachtquote: Fracht im Verhältnis zum Umsatz
+    synonyms:
+      Marge: DB II
+    rules:
+      - Expressfracht wird der verursachenden Lieferung und der Auftragsposition zugeordnet.
+  label:
+    owner: Leitung Controlling
+    version: "1.2"
+    frequency_days: 7
+  # Fracht muss mit dem Auftrag verknüpft sein; im Beispiel fehlt diese Kante noch.
+  required_links:
+    - [orders, freight]
+  kpis: [DB I, DB II, Marge, Rabattquote, Frachtquote]
+
+accountabilities:
+  data_owner: Leitung Controlling
+  data_product_owner: Datenteam
+  use_case_owner: Fachbereich Vertrieb
+
+use_case:
+  level: DECISION_PREPARATION
+  error_budget: {stakes: 440, epsilon: "1/20"}
+  min_pass_rate: "3/4"
+  reference_cases:
+    - question: Welcher Betrag der DB-II-Abweichung geht auf Expressfracht zurück (T€)?
+      reference: 230
+      tolerance: 10
+      weight: 3
+    - question: Welcher Betrag der DB-II-Abweichung geht auf den Produktmix zurück (T€)?
+      reference: 150
+      tolerance: 10
+      weight: 2
+    - question: Welcher Betrag der DB-II-Abweichung geht auf gestiegene Rabatte zurück (T€)?
+      reference: 60
+      tolerance: 5
+      weight: 1
+
+evidence:
+  human_decides: true
