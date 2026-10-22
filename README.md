@@ -2,6 +2,11 @@
 
 **Ein ökonomischer und formaler Ansatz zur verantwortbaren Nutzung von KI in Unternehmen**
 
+[![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB)](https://www.python.org/)
+[![Tests](https://img.shields.io/badge/Tests-72%20passed-4c1)](tests/)
+[![Test Coverage](https://img.shields.io/badge/Test%20Coverage-100%25-brightgreen)](doc/coverage/index.html)
+[![scicov](https://img.shields.io/badge/scicov-10-ff69b4)](doc/coverage/index.html)
+
 Dieses Repository enthält eine wissenschaftliche Arbeit über die Frage, wann das Datennetz eines Unternehmens für eine bestimmte KI-Anwendung gut genug ist. Im Mittelpunkt steht nicht die Suche nach fehlerfreien Daten oder einem perfekten Modell. Entscheidend ist, ob die verbleibende Unsicherheit für den jeweiligen Zweck und die möglichen Folgen einer Entscheidung vertretbar ist.
 
 Die Arbeit verbindet ein formales Modell von Datennetzen und Data Products mit einer wirtschaftlichen Betrachtung von Fehlerbudgets, einer Fallstudie zur Margenanalyse und einem schrittweisen Vorgehen für Organisationen. KI wird dabei zunächst als Hinweis- und Gegenprüfungswerkzeug verstanden. Abweichungen zwischen KI-Antwort und Unternehmensanalyse können auf Datenlücken hinweisen, aber auch eine unvollständige interne Analyse sichtbar machen.
