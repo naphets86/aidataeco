@@ -5,7 +5,7 @@
     <title>Coverage for src/__init__.py: 100%</title>
     <link rel="icon" sizes="32x32" href="favicon_32_cb_c827f16f.png">
     <link rel="stylesheet" href="style_cb_4667309f.css" type="text/css">
-    <script src="coverage_html_cb_15cffcd0.js" defer></script>
+    <script src="coverage_html_cb_54cfdca1.js" defer></script>
 </head>
 <body class="pyfile">
 <header>
@@ -64,10 +64,10 @@
         <p class="text">
             <a id="prevFileLink" class="nav" href="index.html">&#xab; prev</a> &nbsp; &nbsp;
             <a id="indexLink" class="nav" href="index.html">&Hat; index</a> &nbsp; &nbsp;
-            <a id="nextFileLink" class="nav" href="z_145eef247bfb46b6_casestudy_py.html">&#xbb; next</a>
+            <a id="nextFileLink" class="nav" href="z_145eef247bfb46b6___main___py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
-            <a class="nav" href="https://coverage.readthedocs.io/en/7.16.2">coverage.py v7.16.2</a>,
-            created at 2026-10-22 12:03 +0200
+            <a class="nav" href="https://coverage.readthedocs.io/en/7.17.0">coverage.py v7.17.0</a>,
+            created at 2026-10-22 23:19 +0200
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -93,21 +93,26 @@
     <p class="pln"><span class="n"><a id="t9" href="#t9">9</a></span><span class="t"><span class="str">* :mod:`evaluation` &#8211; Testfragen, Bestehensquote, erkl&#228;rter Anteil, Provenance-Abdeckung</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t10" href="#t10">10</a></span><span class="t"><span class="str">* :mod:`integration` &#8211; Auswahl von Datenquellen mit dem Solver aus ``subgraph-sat-solver-econ``</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t11" href="#t11">11</a></span><span class="t"><span class="str">* :mod:`experiment` &#8211; reproduzierbares Protokoll von Eingaben, Konfiguration, Versionen, Resultaten</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t12" href="#t12">12</a></span><span class="t"><span class="str">* :mod:`casestudy` &#8211; illustrative Fallstudie &#8222;Warum sinkt die Marge?&quot;</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t13" href="#t13">13</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t14" href="#t14">14</a></span><span class="t"><span class="str">Entscheider, Schaltkreise und Wohlfahrtsformeln werden **nicht** neu implementiert, sondern aus dem</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t15" href="#t15">15</a></span><span class="t"><span class="str">Paket ``subgraph_sat_solver_econ`` (Abh&#228;ngigkeit in ``pyproject.toml``) wiederverwendet.</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t16" href="#t16">16</a></span><span class="t"><span class="str">&quot;&quot;&quot;</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t12" href="#t12">12</a></span><span class="t"><span class="str">* :mod:`parsing`, :mod:`spec` &#8211; strenges Einlesen maschinenlesbarer Spezifikationen und Antworten</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t13" href="#t13">13</a></span><span class="t"><span class="str">* :mod:`provider` &#8211; Schnittstelle zur KI-Anwendung (Referenzfragen); Adapter liefern nur eine Funktion</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t14" href="#t14">14</a></span><span class="t"><span class="str">* :mod:`report` &#8211; Freigabebericht: abgeleitete Nachweise und Freigabehindernisse (Abschnitt &#8222;Operationalisierung&quot;)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t15" href="#t15">15</a></span><span class="t"><span class="str">* :mod:`compare` &#8211; Regressionsvergleich zweier Berichte &#252;ber die Zeit</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t16" href="#t16">16</a></span><span class="t"><span class="str">* :mod:`cli` &#8211; Kommandozeile ``python -m aidataeco report|compare``</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t17" href="#t17">17</a></span><span class="t"><span class="str">* :mod:`casestudy` &#8211; illustrative Fallstudie &#8222;Warum sinkt die Marge?&quot;</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t18" href="#t18">18</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t19" href="#t19">19</a></span><span class="t"><span class="str">Entscheider, Schaltkreise und Wohlfahrtsformeln werden **nicht** neu implementiert, sondern aus dem</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t20" href="#t20">20</a></span><span class="t"><span class="str">Paket ``subgraph_sat_solver_econ`` (Abh&#228;ngigkeit in ``pyproject.toml``) wiederverwendet.</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t21" href="#t21">21</a></span><span class="t"><span class="str">&quot;&quot;&quot;</span>&nbsp;</span><span class="r"></span></p>
 </main>
 <footer>
     <div class="content">
         <p>
             <a class="nav" href="index.html">&#xab; prev</a> &nbsp; &nbsp;
             <a class="nav" href="index.html">&Hat; index</a> &nbsp; &nbsp;
-            <a class="nav" href="z_145eef247bfb46b6_casestudy_py.html">&#xbb; next</a>
+            <a class="nav" href="z_145eef247bfb46b6___main___py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
-            <a class="nav" href="https://coverage.readthedocs.io/en/7.16.2">coverage.py v7.16.2</a>,
-            created at 2026-10-22 12:03 +0200
+            <a class="nav" href="https://coverage.readthedocs.io/en/7.17.0">coverage.py v7.17.0</a>,
+            created at 2026-10-22 23:19 +0200
         </p>
     </div>
 </footer>
