@@ -1,0 +1,567 @@
+% -*- latex -*-
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[german]{babel}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{microtype}
+\geometry{margin=2.5cm}
+\setlength{\tabcolsep}{3pt}
+
+\definecolor{mainblue}{RGB}{25, 70, 140}
+\definecolor{accentred}{RGB}{180, 50, 30}
+\definecolor{lightgray}{RGB}{245, 245, 248}
+\definecolor{darkgray}{RGB}{60, 60, 70}
+\definecolor{darkgreen}{RGB}{30, 100, 50}
+ 
+\hypersetup{colorlinks=true, linkcolor=mainblue, citecolor=accentred, urlcolor=mainblue}
+
+\title{\textbf{Wann ist das Datennetz gut genug für KI?}\\\large Eine ökonomische und formale Betrachtung des AI Data Network}
+\author{\textsc{Stephan Epp}\\ {\small \texttt{\textbf{M.Sc.}}}}
+\date{15. Oktober 2026}
+
+% Theorem environments
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{bemerkung}[definition]{Bemerkung}
+\newtheorem{satz}[definition]{Satz}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{korollar}[definition]{Korollar}
+
+% Notation
+\newcommand{\bits}{\{0,1\}}
+\newcommand{\NN}{\mathbb{N}}
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\cP}{\mathrm{P}}
+\newcommand{\cNP}{\mathrm{NP}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\KL}{\mathrm{KL}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Diese Arbeit untersucht, wann das Datennetz eines Unternehmens für eine konkrete KI-Anwendung gut genug ist. Ausgangspunkt ist nicht die Forderung nach fehlerfreien Daten, sondern eine ökonomische Abwägung: Ist der verbleibende Fehler im Verhältnis zu den Folgen der unterstützten Entscheidung vertretbar? Eine Fallstudie zur sinkenden Deckungsbeitragsmarge zeigt, wie eine plausibel klingende, aber unvollständige KI-Erklärung zu einer falschen Maßnahme führen kann, wenn Logistikdaten und Produktmix im Datennetz fehlen. Darauf aufbauend verbindet die Arbeit ein formales Modell von Datennetz, Data Product, Provenance und Error Budget mit einem praktischen Vorgehen. Sie beschreibt KI als Hinweis- und Prüfwerkzeug, vier stufenweise Vertrauensniveaus, ein Data Product als wiederverwendbare Grundlage, drei benannte Verantwortlichkeiten und messbare Kriterien für Fortschritt. Die zentrale These lautet: Abweichungen zwischen KI-Antwort und Unternehmensanalyse sind nicht nur ein Risiko, sondern können Datenlücken und zugleich mögliche Lücken in der eigenen Analyse sichtbar machen.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+\section{Einleitung}
+Die drei leitenden Gedanken dieser Arbeit sind eng miteinander verbunden. Erstens hängt Vertrauen in eine Antwort nicht davon ab, ob sie vollkommen fehlerfrei ist, sondern davon, ob ein möglicher Fehler für den konkreten Verwendungszweck klein genug ist. Zweitens bezeichnet das Datennetz mehr als die Summe gespeicherter Daten: Entscheidend sind auch Verknüpfungen, Zugriffswege, gemeinsame Definitionen und Aktualität. Dasselbe KI-Modell kann deshalb auf einem gut verbundenen Netz nützliche und auf einem fragmentierten Netz irreführende Antworten geben. Drittens können KI-Antworten bereits vor vollständiger Datenreife als Hinweise und Gegenprüfung der eigenen wirtschaftlichen Analyse nützlich sein.
+
+Diese Perspektive vermeidet zwei Extreme: KI-Antworten weder blind als Wahrheit zu übernehmen noch den Einsatz bis zu einer unerreichbaren Perfektion der Daten aufzuschieben. Stattdessen werden Nutzung und Autonomie nach den möglichen Folgen eines Fehlers gestuft. Die Arbeit führt zunächst in die Lücke zwischen KI-Ambition und Datenreife ein und erläutert eine Fallstudie zur sinkenden Marge. Danach folgen ein formales Modell, eine ökonomische Bedingung für ausreichende Qualität und ein Lernkreislauf für Abweichungen. Abschließend werden Data Products, Verantwortlichkeiten, Umsetzungsschritte, Unternehmensgrößen, Messgrößen und eine Go-live-Checkliste behandelt.
+
+\section{Ausgangslage: KI-Ambition und Datenreife}
+\label{sec:starting-point}
+
+In der dem Konzept zugrunde liegenden Webinar-Präsentation werden drei Hindernisse für die Nutzung von KI hervorgehoben: eingeschränkter Datenzugriff, unzureichende Datenqualität und voneinander getrennte Systeme. Die dort genannten Umfragewerte dienen hier als Kontext und werden als Angaben aus dem Webinar wiedergegeben \cite{webinar2026}; sie sind keine in dieser Arbeit unabhängig überprüfte Primärerhebung.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Im Webinar berichtete Angaben zu KI und Datenreife}
+\label{tab:readiness}
+\begin{tabular}{p{0.33\linewidth}p{0.57\linewidth}}
+\toprule
+\textbf{Aspekt} & \textbf{Im Webinar genannte Angabe} \\
+\midrule
+KI-Initiativen & 97\,\% der Unternehmen haben KI-Initiativen. \\
+Vollständige Datenreife & 5\,\% halten ihre Daten für vollständig KI-bereit. \\
+Hindernisse & Eingeschränkter Datenzugriff: 50\,\%; Datenqualität: 40\%; getrennte Systeme: 38\,\%. \\
+KI-Agenten & 11\,\% setzen Agenten bereits ein; weitere 29\,\% planen den Einsatz. \\
+Investitionen & Erfolgreiche Unternehmen investieren laut Präsentation bis zu viermal mehr in Datenqualität und Data Governance. \\
+\bottomrule
+\end{tabular}
+\end{table}
+\noindent\footnotesize Im Webinar genannte Quellen: Dun \& Bradstreet (10.000 Unternehmen in 32 Ländern, 2026), Bitkom (2026) und Gartner (2026). Die Zuordnung der Einzelwerte zu diesen Quellen wird in der Präsentation nicht näher aufgeschlüsselt.\normalsize
+
+Diese Hindernisse sind nicht primär Modellprobleme. Eingeschränkter Zugriff bedeutet, dass relevante Daten zwar existieren, aber für die fragende Person oder die KI nicht erreichbar sind. Bei Qualitätsproblemen sind Daten vorhanden, aber beispielsweise unvollständig, verspätet oder nicht verlässlich genug. Getrennte Systeme verlieren Beziehungen zwischen Fakten: So kann ein Expressfrachtaufwand im Logistiksystem verbucht sein, ohne mit dem Auftrag verbunden zu sein, der ihn verursacht hat. Ein besseres Sprachmodell schließt diese Lücke nicht von selbst.
+
+Damit lautet die passende Diagnose nicht nur „Ist das KI-Modell gut genug?“, sondern vor allem: „Ist unser Datennetz für diese konkrete Frage gut genug?“ Die zeitliche Lücke zwischen bereits laufenden oder geplanten Agenten und geringer eingeschätzter Datenreife macht eine solche Prüfung besonders wichtig.
+
+\section{Fallstudie: Warum sinkt die Marge?}
+\label{sec:case-study}
+
+Die folgende illustrative Fallstudie greift die im Webinar präsentierte Situation eines Maschinenbauzulieferers für das erste bis dritte Quartal 2026 auf. Sie veranschaulicht, wie eine sachlich teilweise richtige KI-Antwort durch ein unvollständiges Datennetz zu einer unverhältnismäßigen Empfehlung führen kann.
+
+\subsection{Ausgangslage und KI-Antwort}
+Der Umsatz stieg gegenüber dem Vorjahr von 10{,}0\,Mio.\,€ auf 11{,}0\,Mio.\,€. Gleichzeitig sank die Deckungsbeitragsmarge II (DB\,II) von 28\,\% auf 24\,\%. Bei Anwendung der Vorjahresmarge auf den aktuellen Umsatz wären 3{,}08\,Mio.\,€ DB\,II erzielt worden; tatsächlich waren es 2{,}64\,Mio.\,€. Die Differenz beträgt 440\,T€.
+
+Auf die Frage „Warum sinkt unsere Marge, und was sollten wir tun?“ verwies die KI vor allem auf steigende Rabatte. Die durchschnittliche Rabattquote sei von 6{,}1\,\% auf 6{,}7\,\% gestiegen, besonders bei Großkunden. Als Maßnahmen schlug sie Genehmigungen für Rabatte über 5\,\%, Neuverhandlungen mit den zehn größten Kunden und eine monatliche Berichterstattung vor. Die Antwort klang plausibel und konkret, enthielt aber weder nachvollziehbare Quellenangaben noch einen Datenstichtag.
+
+\subsection{Ergebnis der Controlling-Analyse}
+Die nachfolgende interne Analyse ordnete den Margenabstand drei Ursachen zu. Der Expressfrachtfall betraf 31 teure Eillieferungen, die nach einem Engpass bei einem Lieferantenteil erforderlich waren, um den Kunden Nord termingerecht zu beliefern.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Aufteilung der DB-II-Abweichung in der Fallstudie}
+\label{tab:margin-case}
+\begin{tabular}{p{0.24\linewidth}p{0.10\linewidth}p{0.14\linewidth}p{0.16\linewidth}p{0.25\linewidth}}
+\toprule
+\textbf{Ursache} & \textbf{Betrag} & \textbf{Anteil} & \textbf{Von KI erkannt?} & \textbf{Grund} \\
+\midrule
+Expressfracht & 230\,T€ & ca. 52\,\% & Nein & Im Logistiksystem gebucht, für die KI nicht sichtbar oder nicht mit Aufträgen verbunden. \\
+Produktmix & 150\,T€ & ca. 34\,\% & Nein & Die Produktgruppe fehlte im zugänglichen Datennetz. \\
+Rabatte & 60\,T€ & ca. 14\,\% & Ja & In den zugänglichen Vertriebsdaten sichtbar. \\
+\midrule
+\textbf{Gesamt} & \textbf{440\,T€} & \textbf{100\,\%} & & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Kunde Nord erwirtschaftete 2{,}0\,Mio.\,€ Umsatz. Die teuren Eillieferungen waren nicht durch ein Fehlverhalten des Kunden verursacht worden. Eine auf die KI-Empfehlung gestützte Rabattverhandlung hätte daher einen wertvollen Kunden unter Druck setzen können, während die größte Ursache, die Expressfracht, unangetastet geblieben wäre.
+
+\subsection{Lehren aus dem Fall}
+Die KI-Antwort war nicht vollständig falsch: Der Rabattanteil war tatsächlich gestiegen. Sie erklärte jedoch nur rund 14\,\% der untersuchten Differenz und ließ die beiden größeren Ursachen außer Acht. Die Fallstudie macht fünf Punkte deutlich:
+\begin{enumerate}
+\item Eine flüssige und plausible Antwort ist nicht gleichbedeutend mit einer vollständigen Erklärung.
+\item Die zentralen blinden Flecken lagen im Datennetz: fehlende Verknüpfung von Fracht und Auftrag sowie eine nicht verfügbare Produktgruppendimension. Ein anderes Modell hätte dieselben Datenlücken vorgefunden.
+\item Ohne Definition, Quelle und Zeitstempel lässt sich die Antwort kaum angemessen einordnen.
+\item Eine ungeprüfte Empfehlung kann neben dem unmittelbaren Zahlenfehler auch Geschäftsbeziehungen und künftige Umsätze gefährden.
+\item Als Hinweis war die Beobachtung zur Rabattentwicklung dennoch nützlich. Gefährlich wäre erst, sie als abschließende Gesamterklärung zu behandeln.
+\end{enumerate}
+Für eine erste, informelle Auffälligkeit kann ein erklärter Anteil von 14\,\% ein Anlass zur weiteren Prüfung sein. Für eine Handlungsempfehlung, die einen Kunden mit 2{,}0\,Mio.\,€ Umsatz betrifft, ist die Erklärung offenkundig unzureichend. Das Netz war somit nicht allgemein „schlecht“, sondern für diese konkrete Frage und diesen Verwendungszweck nicht ausreichend.
+
+\section{Formales Modell des Datennetzes}\label{sec:formal}
+Wir modellieren die Unternehmensdatenlandschaft als gerichteten multigraphischen Datenraum und definieren Data Products als wohldefinierte Subnetze mit Metadaten.
+
+\begin{definition}[Daten-Netzwerk]
+Sei $G=(V,E)$ ein gerichteter Multigraph, wobei Knoten $v\in V$ Datentische, Datensätze oder Dokumente repräsentieren und Kanten $e=(u\to v,\varphi)$ eine join-/mapping-Relation mit einer Abbildungsfunktion/Transformation $\varphi$ kennzeichnen. Jeder Knoten trägt Attribute (Spalten) $A_v$ und eine Qualität $q_v\in[0,1]$ sowie eine Aktualität $t_v\in\RR_{\ge0}$ (letzte Aktualisierung).
+\end{definition}
+
+\begin{definition}[Data Product]
+Ein \emph{Data Product} $P$ ist ein Tupel $(V_P,E_P,\mathcal M,\ell)$ mit Teilmenge $V_P\subseteq V$, $E_P\subseteq E$, einer semantischen Beschreibung $\mathcal M$ (Meaning: Definitionen, Synonyme, Regeln) und einem Label $\ell$ (Owner, Quality, Frequency, Version). $P$ ist \emph{geschlossen} in dem Sinne, dass alle Kanten für die relevanten Aggregationen innerhalb $P$ definiert sind oder durch referenzielle Metadaten nachweisbar verbunden werden können.
+\end{definition}
+
+Die KI-Anwendung ist ein Algorithmus $\mathcal A$ der auf Queries $q$ und Zugang zu einem (Teil-)Netz $G'$ eine Antwort $\hat y=\mathcal A(q;G')$ liefert. Die Wahrheit (ground truth) zu einer Frage ist eine Funktion $y^*=f_q(G_{true})$ über das (hypothetisch) vollständige Datennetz $G_{true}$. In der Praxis ist $G'\subseteq G_{true}$.
+
+\begin{definition}[Provenance]
+Zur Antwort $\hat y$ liefert das System eine Provenance-Menge $\Pi(\hat y)$ bestehend aus: (i) referenzierten Data Products/Tabellen, (ii) Versionen und Zeitstempel, (iii) definitorischen Regeln aus $\mathcal M$ die angewendet wurden.
+\end{definition}
+
+\subsection{Einflussgrößen und beobachtbare Variablen}
+Für eine Frage $q$ definiert ein Domänenexperte die Menge der \emph{wesentlichen Einflussgrößen} $S_q=\{s_1,\dots,s_k\}$, die die Antwort beeinflussen (z. B. Discount, Freight, ProductGroup). Jede $s_i$ ist eine Funktion auf Knoten/Attributen des Netzes: $s_i=\phi_i(G_{true})$. In $G'$ sind nur Submengen $\tilde S_q$ beobachtbar.
+
+\section{Fehlerzusammensetzung und Gut genug}
+\label{sec:error}
+Wir wollen für eine konkrete Entscheidung die zulässige Fehlergrösse analysieren.
+
+\begin{definition}[Entscheidungs-Stakes und Error Budget]
+Sei $D$ eine Entscheidung mit monetärem Stake $W\ge0$ (z. B. erwarteter Einfluss auf Marge). Ein erwarteter Fehler in der Antwort $\hat y$ führt zu einem erwarteten monetären Schaden $L(\hat y,y^*)$. Ein Error Budget ist $\varepsilon>0$ so dass $\E[L(\hat y,y^*)]\le\varepsilon W$ nötig ist, damit die KI-Antwort für die automatisierte oder vorbereitende Nutzung \emph{zulässig} ist.
+\end{definition}
+
+Typische Loss-Funktionen sind absolutes Delta in Euro, Rangdifferenz, oder Entscheidungsverlust (z. B. falsche Top-K-Kunden).
+
+\begin{satz}[Fehlerzerlegung]
+Sei $q$ eine Frage mit wahren Treibern $S_q$ und beobachteter Menge $\tilde S_q\subseteq S_q$ im genutzten Datennetz $G'$. Unter milden Regularitätsannahmen (lineare Einflussbeziehung, additive Störgröße) zerfällt der Antwortfehler in:
+\[
+\hat y - y^* = B_{miss} + B_{def} + \eta
+\]
+wobei
+\begin{itemize}
+\item $B_{miss}$ der Bias wegen \emph{fehlender Einflussgrößen} ($S_q\setminus\tilde S_q$) ist,
+\item $B_{def}$ der Bias aus \emph{uneinheitlicher Definition} (Inkompatible Metriken) ist,
+\item $\eta$ ein zufälliger Fehler (Rauschen) aus Datenqualität/Update-Verzögerung.
+\end{itemize}
+Der Erwartungswert $\E[\hat y - y^*] = B_{miss}+B_{def}$.
+\end{satz}
+\begin{proof}
+Unter der Annahme, dass $y^*=\sum_{i\in S_q} \alpha_i s_i + \xi$ (lineares Modell) und $\hat y=\sum_{i\in\tilde S_q}\alpha_i s_i + \tilde\xi$ (Modell auf beobachteten Variablen), folgt:
+\[
+\hat y-y^*= -\sum_{i\in S_q\setminus\tilde S_q} \alpha_i s_i + (\tilde\xi-\xi) + \Delta_{def}
+\]
+Setze $B_{miss}=-\sum_{i\in S_q\setminus\tilde S_q}\alpha_i s_i$, $\eta=\tilde\xi-\xi$ und $B_{def}=\Delta_{def}$; das ergibt die Behauptung.
+\end{proof}
+
+Damit ist die Kernaufgabe: Für gegebene Stakes $W$ schätzen, wie groß $|B_{miss}|+|B_{def}|+\mathrm{std}(\eta)$ werden darf.
+
+\subsection{Gut genug als ökonomische Bedingung}
+\begin{satz}[Ökonomische Gut-Genug-Bedingung]
+Die KI-Antwort ist für eine Entscheidung mit Stakes $W$ "gut genug" genau dann, wenn die erwartete monetäre Auswirkung des Fehlers kleiner ist als das Error Budget, d. h.
+\[
+\E[L(\hat y,y^*)] \le \varepsilon W.
+\]
+Insbesondere gilt unter linearem Loss $L(\hat y,y^*)=c|\hat y-y^*|$ die praktische Bedingung
+\[
+c\,\E[|B_{miss}+B_{def}+\eta|] \le \varepsilon W.
+\]
+\end{satz}
+\begin{proof}
+Direkt aus Definition des Loss und Error Budget.
+\end{proof}
+
+Diese Bedingung ist operationalisierbar: Man misst erklärten Anteil (explained share) auf Testfragen mit bekannter Referenz und vergleicht mit akzeptiertem Anteil.
+
+\subsection{Vertrauensstufen und Fehlerbudget}
+Ein Error Budget macht die zulässige Abweichung für einen Anwendungsfall explizit. Es ist keine globale Qualitätsnote für ein Data Product: Dieselben Daten können für eine explorative Trendfrage genügen und für einen Eingriff in einen wichtigen Kundenvertrag unzureichend sein. Entscheidend sind der Zweck, die mögliche Schadenshöhe, die menschliche Aufsicht und die Messbarkeit des Fehlers.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Nutzungsstufen nach erforderlicher Zuverlässigkeit}
+\label{tab:reliability-levels}
+\begin{tabular}{p{0.08\linewidth}p{0.25\linewidth}p{0.37\linewidth}p{0.21\linewidth}}
+\toprule
+\textbf{Stufe} & \textbf{Rolle der KI} & \textbf{Anforderung an Datennetz und Kontrolle} & \textbf{Beispiel} \\
+\midrule
+1 & Hinweis & Geringere Abdeckung ist vertretbar; der Mensch prüft die Spur eigenständig. & Rabattentwicklung genauer untersuchen. \\
+2 & Gegenprüfung & Zentrale Kennzahlen sind verknüpft und definiert; Abweichungen werden verglichen. & KI-Aufschlüsselung mit Controlling-Analyse abgleichen. \\
+3 & Vorbereitung von Entscheidungen & Qualität ist messbar; Quelle, Definition und Zeitstempel sind verfügbar; ein Mensch entscheidet. & Begründete Empfehlung für die Geschäftsleitung. \\
+4 & Automatisierte Handlung & Sehr hohe Zuverlässigkeit, ausdrückliche Freigabe, Protokollierung und klarer Eingriffspfad. & KI legt nach Freigabe eine Aufgabe an. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Organisationen müssen nicht mit der höchsten Stufe beginnen. Hinweise und Gegenprüfungen können früh Nutzen bringen, während Testabdeckung, Datenverknüpfungen und Governance schrittweise verbessert werden. Eine höhere Stufe setzt einen belegbaren Reifegrad voraus; sie folgt nicht automatisch daraus, dass die vorherige Stufe eine Zeit lang funktioniert hat.
+
+\subsection{Stake-bezogene Anforderungen}
+Die nachfolgende Einordnung ist eine Entscheidungshilfe, keine allgemeingültige numerische Norm. Die verantwortliche Person muss Fehlermaß, Referenz und akzeptable Schwelle für jeden konkreten Anwendungsfall festlegen.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Beispiele für Stakes und Anforderungen an das Datennetz}
+\label{tab:stakes}
+\begin{tabular}{p{0.34\linewidth}p{0.20\linewidth}p{0.19\linewidth}p{0.19\linewidth}}
+\toprule
+\textbf{Fragestellung} & \textbf{Typische Stakes} & \textbf{Zulässiger Fehler} & \textbf{Erforderliche Grundlage} \\
+\midrule
+Welche Produktgruppen verkaufen sich am besten? & Niedrig, informativ & Eher großzügig & Kerndaten genügen; Quelle und Zeitraum bleiben nachvollziehbar. \\
+Wo verlieren wir Marge und warum? & Mittel bis hoch & Haupttreiber müssen erfasst sein & Wesentliche Einflussgrößen müssen definiert und verbunden sein. \\
+Mit welchen Kunden verhandeln wir neu? & Hoch, betrifft Beziehungen und Umsatz & Gering & Kausale Gesamtsicht und Qualitätsnachweis erforderlich. \\
+Automatisch eine Aufgabe oder Maßnahme auslösen & Sehr hoch, gegebenenfalls ohne unmittelbare Prüfung & Sehr gering & Governance, Genehmigung, Protokollierung und Eskalationsweg. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Für den Fall aus Abschnitt~\ref{sec:case-study} ist daher zwischen einer explorativen Frage und der Empfehlung „Was sollen wir tun?“ zu unterscheiden. Die erste kann eine unvollständige Antwort als Suchhinweis verwenden; die zweite verlangt Abdeckung der entscheidenden Treiber und eine Prüfung möglicher Nebenwirkungen. Ein einfacher Maßstab ist, den auf Testfällen belegten Anteil des Effekts der konkreten Entscheidung gegenüberzustellen und zu fragen, ob die nicht erklärte Restgröße noch zu groß ist.
+
+\section{Abweichungen als Chance}\label{sec:opportunity}
+Die besondere These dieser Arbeit: Eine Abweichung zwischen AI-Antwort und interner Analyse kann ein Indikator sein, der Information liefert und damit eine \emph{Chance} darstellt.
+
+\subsection{KI als Hinweis und Gegenprüfung}
+Ein Hinweis ist kein Urteil. Der Nutzen einer KI-Antwort kann darin liegen, eine bislang übersehene Richtung oder Auffälligkeit kenntlich zu machen, die anschließend fachlich geprüft wird. Im Margenbeispiel war der Anstieg der Rabattquote ein wahrer und prüfenswerter Hinweis, obwohl er nur einen kleinen Teil des gesamten Abstands erklärte.
+
+Als Gegenprüfung wird die KI-Antwort mit der eigenen Strategie, Erfahrung oder Controlling-Analyse verglichen. Stimmen die Ergebnisse überein, kann das die Sicherheit in beiden Analysen erhöhen. Weichen sie voneinander ab, ist die Differenz ein Anlass, die Ursachen in Daten, Verknüpfungen und Definitionen zu untersuchen. Der Vergleich kann zugleich zeigen, dass die KI zusätzliche Aspekte gefunden hat, die in der bisherigen Unternehmensanalyse fehlten.
+
+\subsection{Formalisierung als diagnostisches Signal}
+Wir modellieren die Situation probabilistisch. Sei $H_0$ die Hypothese "Kein fehlender Treiber" (\(S_q = \tilde S_q\) und Definitionsgleichheit) und $H_1$ die Alternative "Es fehlt mindestens ein Treiber oder Definitionskonflikt".
+
+Die KI erzeugt eine Antwort $\hat y$. Der interne Controlling-Wert (Referenz) ist $y_c$ (menschliche Analyse). Beobachte die Abweichung $d=\hat y-y_c$.
+
+\begin{satz}[Abweichung als Bayesscher Indikator]
+Angenommen es existieren Likelihoods $p(d\mid H_0)$ und $p(d\mid H_1)$. Dann ist die Bayes-Posterior Odds
+\[
+\frac{P(H_1\mid d)}{P(H_0\mid d)} = \frac{P(H_1)}{P(H_0)}\cdot\frac{p(d\mid H_1)}{p(d\mid H_0)}.
+\]
+Ist $p(d\mid H_1)>p(d\mid H_0)$, so erhöht die Beobachtung $d$ die posteriori Wahrscheinlichkeit von $H_1$ gegenüber dem Prior. Im Erwartungswert kann eine systematische Auswertung solcher Abweichungen die Unsicherheit über den Zustand des Datennetzes verringern; ob daraus ein wirtschaftlicher Nutzen entsteht, hängt zusätzlich von den möglichen Maßnahmen und ihren Kosten ab.
+\end{satz}
+\begin{proof}
+Bayessches Theorem.
+\end{proof}
+
+\begin{bemerkung}
+In Worten: Wenn eine bestimmte Abweichung unter \(H_0\) unwahrscheinlicher als unter \(H_1\) ist, verschiebt sie die Einschätzung in Richtung fehlender Treiber oder Definitionskonflikte. Das ist ein diagnostischer Hinweis, aber kein Beweis: Auch eine fehlerhafte eigene Analyse, ein abweichender Datenstand oder eine andere zulässige Abgrenzung kann die Differenz erklären.
+\end{bemerkung}
+
+\subsection{Abweichungen systematisch diagnostizieren}
+Die Abweichung sollte nicht vorschnell dem Modell angelastet werden. Stattdessen werden Ursachen geprüft und jeweils mit einer konkreten Reaktion verknüpft:
+\begin{table}[htbp]
+\centering
+\small
+\caption{Mögliche Ursachen einer Abweichung und geeignete Reaktionen}
+\label{tab:deviation-causes}
+\begin{tabular}{p{0.21\linewidth}p{0.31\linewidth}p{0.40\linewidth}}
+\toprule
+\textbf{Mögliche Ursache} & \textbf{Typisches Anzeichen} & \textbf{Reaktion} \\
+\midrule
+Fehlende Datenquelle & Ein Treiber wie Fracht ist in einem anderen System vorhanden. & Quelle mit dem Data Product verbinden und Zuständigkeit festlegen. \\
+Fehlendes Attribut & Eine wichtige Dimension wie Produktgruppe ist nicht verfügbar. & Attribut ergänzen und dessen Vollständigkeit überwachen. \\
+Unklare Definition & Beteiligte verstehen unter „Marge“ unterschiedliche Kennzahlen. & Data Owner legt Bedeutung fest und dokumentiert Synonyme und Geltungsbereich. \\
+Veraltete Daten & Antwort passt zu einem älteren Zustand oder Stichtag. & Aktualisierungsfrequenz klären und Datenstichtag ausweisen. \\
+Unvollständige eigene Analyse & KI macht einen zuvor übersehenen Treiber sichtbar. & Hinweis prüfen und gegebenenfalls die interne Analyse korrigieren. \\
+\bottomrule
+\end{tabular}
+\end{table}
+Die Gegenprüfung funktioniert somit in beide Richtungen: Sie kann Mängel im Datennetz aufdecken und zugleich die Annahmen oder Berechnungen des Unternehmens in Frage stellen.
+
+\subsection{Konkretes Lern-Loop-Modell}
+Sei $\theta$ ein latenter Zustand des Datennetzes (zum Beispiel, welche Quellen verknüpft sind). Vor der Beobachtung hat das Unternehmen einen Prior $\pi_0(\theta)$. Eine Abweichung $d$ liefert die Likelihood $p(d\mid\theta)$ und damit den Posterior $\pi_1(\theta)\propto p(d\mid\theta)\pi_0(\theta)$. Die Wahrscheinlichkeit von Zuständen mit fehlenden Verknüpfungen kann dadurch steigen; sie muss aber nicht für jede Abweichung steigen. Der praktische Lernkreislauf lautet:
+\begin{enumerate}
+\item Eine fachlich konkrete Frage an die KI stellen.
+\item Eine Antwort mit Definition, Quelle und Datenstichtag erhalten.
+\item Antwort mit der eigenen Strategie oder Controlling-Analyse vergleichen.
+\item Bei Abweichungen die Ursachen prüfen, einschließlich möglicher Lücken in der eigenen Analyse.
+\item Datenquelle, Verknüpfung oder Definition verbessern und die Änderung dokumentieren.
+\item Die nächste Antwort und die zugehörigen Testfragen erneut prüfen.
+\end{enumerate}
+Die Gegenprüfung ist damit zugleich Schutzmaßnahme und Diagnoseinstrument: Die Anwendung kann schon während der Verbesserung helfen und prüft gleichzeitig, ob das Datennetz die gestellte Frage trägt.
+
+\begin{satz}[VOI-Bedingung für Datenerweiterung]
+Sei $C_{int}$ die Integrationskosten einer zusätzlichen Quelle, und $\Delta W(\theta)$ der erwartete Margingewinn, der sich aus der verbesserten Antwort bei Zustand $\theta$ ergibt. Dann ist das Erweitern der Datenquelle rational genau dann, wenn
+\[
+\E_{\pi_1}[\Delta W(\theta)] \ge C_{int}.
+\]
+\end{satz}
+\begin{proof}
+Kostennutzen-Argument; Standard in VOI-Theorie.
+\end{proof}
+
+Damit ist klar: Eine Abweichung kann (und soll) ökonomisch als Diagnose genutzt werden. Sie ist nicht nur ein Fehler: sie zeigt, wo Investitionen in Daten den größten Margennutzen liefern.
+
+\section{Das Data Product als gemeinsame Grundlage}
+\label{sec:data-product}
+
+Das Data Product ist die im Webinar vorgeschlagene Antwort auf die Frage, wo fachliches Wissen, relevante Daten und ihre Verbindungen so abgelegt werden, dass Menschen und KI sie wiederverwenden können. Es bündelt Daten, Bedeutung und ein Nutzungslabel. Im Beispiel könnte ein Data Product „Sales Result 360“ Fragen zu Umsatz, Marge und deren Einflussfaktoren beantworten.
+
+\subsection{Daten und Granularität}
+Im Zentrum stehen Auftragspositionen mit Umsatz, Herstellkosten, Rabatt und Menge. Die Granularität muss ausdrücklich festgelegt werden, beispielsweise „eine Zeile entspricht einer Auftragsposition“. Daran werden Kunden-, Produkt-, Zeit- und Vertriebsdimensionen sowie Fracht je Lieferung, Planwerte und Vorjahreswerte angeschlossen. Relevante Dokumente, etwa Rahmenvereinbarungen im PDF-Format, können über identifizierbare Referenzen ergänzt werden. Die Verknüpfung ist entscheidend: Ein Frachtdatensatz ohne Beziehung zur verursachenden Lieferung ist für eine Auftragsmargenfrage nur eingeschränkt nützlich.
+
+\subsection{Bedeutung und Regeln}
+Der semantische Teil beschreibt nicht nur Spaltennamen, sondern legt fest, wie Kennzahlen zu interpretieren und zu vergleichen sind.
+\begin{table}[htbp]
+\centering
+\small
+\caption{Beispielhafte fachliche Bedeutung für Sales Result 360}
+\label{tab:meaning}
+\begin{tabular}{p{0.25\linewidth}p{0.65\linewidth}}
+\toprule
+\textbf{Element} & \textbf{Festlegung} \\
+\midrule
+Kennzahlen & DB\,I, DB\,II, Rabattquote und Frachtquote einschließlich Berechnungsregeln. \\
+Synonyme & Der unspezifische Begriff „Marge“ bezeichnet in diesem Anwendungsbereich DB\,II. \\
+Zurechnungsregel & Expressfracht wird der verursachenden Lieferung und, soweit möglich, der Auftragsposition zugeordnet. \\
+Einflussgrößen & Fracht, Expresslieferungen, Rabatte und Produktmix sind für die Margenanalyse zu prüfen. \\
+Vergleiche & Vorjahres- und Planvergleich verwenden jeweils dokumentierte Zeiträume und Abgrenzungen. \\
+\bottomrule
+\end{tabular}
+\end{table}
+Eine dokumentierte Regel zur Zuordnung von Expressfracht würde im Fallbeispiel helfen, die 230\,T€ als Kosten der betroffenen Aufträge sichtbar zu machen. Semantik ersetzt dabei keine belastbare Verknüpfung der Quelldaten; beide Voraussetzungen müssen erfüllt sein.
+
+\subsection{Label und Wiederverwendung}
+Das Label macht Nutzungsvoraussetzungen und Grenzen sichtbar. Ein Beispiel enthält einen benannten fachlichen Kontakt, die Vollständigkeit kritischer Attribute (etwa Produktgruppe mindestens 99\,\%, täglich geprüft), Aktualisierungszusagen (etwa täglich für Vertrieb und wöchentlich für Fracht), rollenbasierten Zugriff einschließlich KI-Zugriff (beispielsweise über MCP), eine Versionsnummer wie 1.2 sowie einen Prozess zur Ankündigung von Änderungen. Ergänzend sollten Datenstand, bekannte Einschränkungen und Zugriffsbedingungen maschinenlesbar dokumentiert sein.
+
+Ein einmal aufgebautes Data Product kann mehreren Anwendungen dienen: Controlling kann etwa mit Qlik Answers oder Copilot in Power BI nach Ursachen einer monatlichen DB-II-Veränderung fragen, das Management in Teams nach Frachtkostentrends und der Vertrieb nach Kunden mit hohem Umsatz bei geringer Marge. Ein Agent kann – beispielsweise über MCP und nur im freigegebenen Rahmen – ungewöhnliche Aufträge suchen und mögliche Ursachen erläutern. Gemeinsame Definitionen, Rechte und Protokollierung vermeiden, dass jede Anwendung dieselbe Geschäftslogik neu aufbaut oder abweichend interpretiert. Der Aufwand für verlässliche Verknüpfungen wird so einmal investiert und kann in mehreren Anwendungen Nutzen stiften.
+
+\begin{quote}
+\textbf{Faustregel:} ein Geschäftsbereich, eine Granularität, ein verantwortlicher Owner, viele Fragestellungen.
+\end{quote}
+Ein eng umrissenes Data Product mit wenigen zentralen Treibern ist meist ein besserer Startpunkt als der Versuch, sofort ein unternehmensweit vollständiges Modell zu bauen.
+
+\section{Verantwortung und Freigabe}
+\label{sec:practice}
+
+Für einen verantwortbaren Go-live braucht es drei explizit benannte Zuständigkeiten. Die Rollen können in kleineren Unternehmen von derselben Person wahrgenommen werden; die Entscheidungen und Verantwortungsbereiche müssen trotzdem klar dokumentiert sein.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Drei Verantwortlichkeiten vor dem Go-live}
+\label{tab:accountabilities}
+\begin{tabular}{p{0.20\linewidth}p{0.29\linewidth}p{0.22\linewidth}p{0.22\linewidth}}
+\toprule
+\textbf{Rolle} & \textbf{Verantwortung} & \textbf{Typische Verankerung} & \textbf{Leitfrage} \\
+\midrule
+Data Owner & Definiert fachliche Bedeutung, Kennzahlen, Ausnahmen und Kriterien einer richtigen Antwort; im Alltag gegebenenfalls unterstützt durch einen Data Steward. & Fachbereich, etwa Leitung Controlling. & Wer zeichnet die Definition von „Marge“ ab? \\
+Data Product Owner & Liefert und verantwortet Vollständigkeit, Aktualität, Prüfungen und Berechtigungen des Data Products. & Datenteam oder IT. & Wer reagiert, wenn Frachtangaben fehlen? \\
+Use-Case Owner & Genehmigt den KI-Einsatz, verantwortet Testfragen und Error Budget und legt fest, wann ein Mensch entscheidet. & Fachbereich gemeinsam mit IT. & Wer darf aus einer Antwort eine Handlung machen? \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Ohne Data Owner können verschiedene Werkzeuge unter „Marge“ unterschiedliche Kennzahlen verstehen. Ohne Data Product Owner bleiben ausgefallene oder verspätete Datenlieferungen womöglich unbemerkt. Ohne Use-Case Owner sind weder Testumfang noch Autonomiegrenzen eindeutig. Wenn sich für eine dieser Fragen keine verantwortliche Person benennen lässt, ist die Freigabe des Anwendungsfalls zurückzustellen.
+
+\section{Schrittweises Vorgehen in der Praxis}
+\label{sec:implementation}
+
+Ein praktikabler Aufbau beginnt mit einer geschäftlich wichtigen, aber begrenzten Frage und erweitert Netz und Nutzung erst anhand von Beobachtungen:
+\begin{enumerate}
+\item \textbf{Zweck und Stakes klären:} Welche Entscheidung soll unterstützt werden, welche Folgen hätte ein Fehler, und welches Error Budget ist dafür vertretbar?
+\item \textbf{Einflussgrößen benennen:} Fachleute identifizieren die tatsächlichen Treiber der Antwort. Im Margenfall gehören dazu nicht nur Rabatte, sondern auch Fracht und Produktmix.
+\item \textbf{Datennetz prüfen:} Für jeden Treiber wird festgestellt, ob Daten vorhanden, zugänglich, aktuell und miteinander verknüpft sind.
+\item \textbf{Bedeutung festlegen:} Der Data Owner definiert Kennzahlen, Synonyme, Zurechnungsregeln und Vergleichszeiträume und zeichnet die Definition ab.
+\item \textbf{Data Product aufbauen:} Daten, Granularität, Meaning und Label werden zusammengeführt; Owner, Qualität, Aktualisierung, Zugriff und Version sind dokumentiert.
+\item \textbf{Referenzfragen pflegen:} Der Use-Case Owner erstellt Testfragen mit bekannten Antworten, etwa anhand einer durch Controlling geprüften Ursachenanalyse.
+\item \textbf{Als Hinweis und Gegenprüfung starten:} KI-Antworten werden mit eigener Analyse und Strategie verglichen; Abweichungen erhalten eine dokumentierte Ursachenprüfung.
+\item \textbf{Vertrauensstufe nur bei Nachweis erhöhen:} Von Hinweisen über Gegenprüfungen zur Entscheidungsvorbereitung; Automatisierung nur mit expliziter Freigabe, Protokollierung und Eingriffsmöglichkeit.
+\item \textbf{Regelmäßig nachjustieren:} Datenqualität, Aktualisierung, Definitionen und Testfragen werden erneut geprüft. Änderungen am Data Product werden versioniert und angekündigt.
+\end{enumerate}
+
+\subsection{Mittelstand und Großunternehmen}
+Das wirtschaftliche Prinzip bleibt gleich; Umfang und Governance unterscheiden sich.
+\begin{table}[htbp]
+\centering
+\small
+\caption{Schwerpunktunterschiede bei der Umsetzung}
+\label{tab:company-size}
+\begin{tabular}{p{0.18\linewidth}p{0.36\linewidth}p{0.36\linewidth}}
+\toprule
+\textbf{Aspekt} & \textbf{Mittelstand} & \textbf{Großunternehmen} \\
+\midrule
+Ausgangslage & Überschaubare Landschaft, oft wenige Kernsysteme und knappe Spezialressourcen. & Viele Systeme, Geschäftsbereiche und Standorte mit historisch gewachsenen Silos. \\
+Start & Ein Bereich, ein Data Product und wenige entscheidende Fragen. & Mehrere domänenspezifische Data Products, abgestimmt über gemeinsame Definitionen. \\
+Verantwortung & Rollen können in Personalunion liegen; Zuordnung dennoch schriftlich festhalten. & Rollen trennen und durch Data Stewards im Alltag unterstützen. \\
+Hauptrisiko & Datenlücken bleiben unentdeckt, wenn niemand systematisch gegenprüft. & Widersprüchliche Begriffe wie „Marge“ führen zu inkonsistenten Antworten zwischen Bereichen. \\
+Hebel & Schneller Nutzen durch Abgleich mit der Controlling-Analyse; schlanke, aber explizite Governance. & Wiederverwendung, standardisierte Rechte und Protokolle sowie kontrollierte Freigaben für mehrere Anwendungen. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Im Mittelstand sollte der Einstieg von der wichtigsten Geschäftsfrage ausgehen, nicht von einer vollständigen technischen Inventur. Bestehende Expertise im Controlling kann die erste Referenz bilden; die Rollen bleiben auch dann ausdrücklich benannt, wenn eine Person mehrere übernimmt. Die ersten Anwendungen sollten in der Regel auf Hinweis- und Gegenprüfungsstufe bleiben.
+
+Großunternehmen schneiden Data Products sinnvollerweise nach Geschäftsdomänen und fachlicher Granularität statt nur nach Technologie. Definitionen zwischen Bereichen müssen früh harmonisiert oder mit eindeutigem Geltungsbereich dokumentiert werden. Wiederverwendung bestehender Produkte wird zum Standard; Rechte und Protokolle gelten auch für KI-Agenten. Ein höheres Autonomieniveau wird für jeden Anwendungsfall anhand seiner Stakes und Testergebnisse separat freigegeben.
+
+\section{Typische Stolperfallen}
+\label{sec:pitfalls}
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Häufige Fehlannahmen und geeignete Gegenmaßnahmen}
+\label{tab:pitfalls}
+\begin{tabular}{p{0.22\linewidth}p{0.32\linewidth}p{0.38\linewidth}}
+\toprule
+\textbf{Stolperfalle} & \textbf{Mögliche Folge} & \textbf{Gegenmaßnahme} \\
+\midrule
+Flüssige Antworten mit korrekten Antworten verwechseln & Plausible, aber unvollständige Aussagen werden ungeprüft übernommen. & Definition, Quelle und Datenstichtag einfordern. \\
+Sofort das Modell verantwortlich machen & Wechsel des Modells lässt fehlende Quellen und Verknüpfungen bestehen. & Abweichungen zuerst im Datennetz und in den Definitionen untersuchen. \\
+Auf Perfektion warten & Nützliche, risikoarme Anwendungen werden unbegrenzt vertagt. & Mit klar begrenzten Hinweisen und Gegenprüfungen beginnen. \\
+KI als alleinige Autorität einsetzen & Eine einzelne Antwort löst eine ungeprüfte Entscheidung aus. & Eigene Analyse gegenprüfen, insbesondere bei hohen Stakes. \\
+Kennzahlen nicht definieren & Personen und Werkzeuge berechnen „Marge“ unterschiedlich. & Data Owner benennt und genehmigt Definitionen sowie Synonyme. \\
+Relevante Daten bleiben unsichtbar & Fachbereichsübergreifende Daten gehen der Analyse verloren. & Quellen und Beziehungen in das Data Product aufnehmen und Verantwortung zuweisen. \\
+Keine Testfragen pflegen & Qualitätsabfall bleibt unbemerkt. & Use-Case Owner hält Referenzfragen und erwartete Antworten aktuell. \\
+Autonomie zu früh erhöhen & Unvollständige Informationen lösen Maßnahmen ohne menschliche Prüfung aus. & Freigabe, Protokollierung und menschliche Eingriffspunkte vorschreiben. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Fortschritt messen}
+\label{sec:metrics}
+
+Die Frage, ob ein Datennetz besser wird, braucht Messgrößen, die sowohl Datenzustand als auch tatsächlichen Anwendungserfolg erfassen. Einzelne Qualitätswerte ersetzen dabei keine Überprüfung der wirtschaftlich relevanten Treiber.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Kennzahlen zur Beobachtung von Reife und Nutzen}
+\label{tab:metrics}
+\begin{tabular}{p{0.30\linewidth}p{0.60\linewidth}}
+\toprule
+\textbf{Kennzahl} & \textbf{Beantwortete Frage} \\
+\midrule
+Erklärter Anteil & Welchen Anteil eines bekannten Effekts erklärt die KI auf Referenzfällen? Im Fallbeispiel waren es etwa 14\,\%. \\
+Bestehensquote der Testfragen & Welcher Anteil der gepflegten Fragen wird innerhalb der festgelegten Toleranz korrekt beantwortet? \\
+Vollständigkeit kritischer Attribute & Wie vollständig sind entscheidende Felder, beispielsweise Produktgruppen mit mindestens 99\,\% Belegung? \\
+Aktualität & Werden Daten innerhalb der zugesagten Intervalle aktualisiert, etwa täglich oder wöchentlich? \\
+Provenance-Abdeckung & Bei welchem Anteil der Antworten sind Definition, Quelle und Datenstichtag verfügbar? \\
+Bearbeitete Abweichungen & Wie viele Abweichungen führten zu einer dokumentierten Korrektur oder zu einer begründeten Bestätigung der bisherigen Daten? \\
+Wiederverwendung & Wie viele Anwendungen nutzen dieselbe freigegebene Daten- und Definitionsgrundlage? \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Der erklärte Anteil ist eine nützliche Kennzahl, aber kein universeller Qualitätsbeweis: Ein hoher Wert in einem kleinen oder wenig repräsentativen Testsatz garantiert keine Sicherheit bei einer anderen Entscheidung. Deshalb müssen Testfälle nach Stakes gewichtet, regelmäßig aktualisiert und um typische Abweichungen ergänzt werden. Ein Netz ist für einen Anwendungsfall dann gut genug, wenn die relevanten Kennzahlen die für diesen Fall festgelegten Anforderungen erfüllen.
+
+\subsection{Testfragen und erklärte Abdeckung}
+Sei $T=\{(q_j,y_j^*)\}_{j=1}^n$ eine Menge repräsentativer Testfragen mit fachlich geprüften Referenzwerten. Für eine Fehlertoleranz $\delta_j$ und eine ökonomische Gewichtung $w_j\geq 0$ lässt sich die gewichtete Bestehensquote definieren als
+\[
+\mathrm{Bestehensquote}
+=\frac{\sum_{j=1}^n w_j\,\mathbf{1}\!\left[|\hat y_j-y_j^*|\leq\delta_j\right]}
+{\sum_{j=1}^n w_j}.
+\]
+Dabei bezeichnet $\mathbf{1}[\cdot]$ die Indikatorfunktion. Für Ursachenanalysen sollte zusätzlich der erklärte Anteil am bekannten Gesamteffekt ausgewiesen werden. Beide Kennzahlen beantworten verschiedene Fragen: Besteht die Antwort einen Toleranztest, und deckt sie die wesentlichen Ursachen ab? Die Referenzen und Toleranzen verantwortet der Use-Case Owner gemeinsam mit den fachlich zuständigen Personen.
+
+\section{Checkliste: Ist diese KI-Antwort vertrauenswürdig?}
+\label{sec:checklist}
+
+Vor der Verwendung einer KI-Antwort sollten mindestens die folgenden Punkte geprüft und für den konkreten Einsatzfall beantwortet werden:
+\begin{enumerate}[label=$\square$]
+\item Ist die Frage klar formuliert, und sind Stakes sowie möglicher Schaden einer Fehlentscheidung bekannt?
+\item Sind die wesentlichen Einflussgrößen im Datennetz vorhanden und miteinander verknüpft?
+\item Ist die verwendete Kennzahl eindeutig definiert, und ist ein Data Owner benannt?
+\item Nennt die Antwort Definition, Datenquelle und Datenstichtag?
+\item Sind Qualität und Aktualität der entscheidenden Daten bekannt und für den Anwendungsfall ausreichend?
+\item Wurde die Antwort mit der eigenen Analyse oder Strategie gegengeprüft?
+\item Ist der mögliche verbleibende Fehler im Verhältnis zu den Folgen der Entscheidung vertretbar?
+\item Ist festgelegt, wann ein Mensch entscheidet, genehmigt oder eingreifen muss?
+\end{enumerate}
+Ein fehlender Nachweis ist selbst ein relevantes Ergebnis: Er bedeutet nicht automatisch, dass die Antwort falsch ist, aber dass sie nicht ohne weitere Prüfung für eine höher riskante Verwendung freigegeben werden sollte.
+
+\section{Diskussion, Grenzen und Ausblick}
+Die formalen Modelle vereinfachen reale Unternehmensprozesse bewusst: Einflussbeziehungen sind nicht immer linear, Referenzwerte können selbst unsicher sein und Ursachen interagieren. Auch die im Fallbeispiel genannten Beträge sind eine illustrative Webinar-Fallstudie und keine unabhängig erhobene Unternehmensanalyse. Die angegebenen Reife- und Fehlermaße müssen daher als fallbezogene Entscheidungshilfen verstanden werden.
+
+Eine weitere Grenze ist die Auswahl der Testfragen. Ein hoher Messwert für leicht beantwortbare oder häufige Fragen sagt wenig über seltene, aber folgenreiche Ausnahmen aus. Testsets sollten deshalb nach möglichen Auswirkungen geschichtet und auch nach Änderungen an Datenquellen, Definitionen, Modellen oder Berechtigungen erneut ausgeführt werden. Ebenso ist eine Abweichung nicht automatisch ein Beleg gegen das Datennetz: Sie kann auf einen Fehler in der internen Analyse, eine andere zulässige Definition oder einen inzwischen veränderten Datenstand hinweisen.
+
+Die wirtschaftliche Logik bleibt dennoch belastbar: Datenverbesserungen sollten dort priorisiert werden, wo ihr erwarteter zusätzlicher Nutzen die Integrations- und Betriebskosten rechtfertigt. In der Praxis sind dafür kontrollierte Experimente, historische Was-wäre-wenn-Analysen und eine nachvollziehbare Messung der Folgen nötig. Die Schätzung dieses Nutzens in realen Geschäftsfällen bleibt eine zentrale offene Aufgabe.
+
+\section{Schlussfolgerung}
+Die Frage „Wann ist das Datennetz gut genug für KI?“ hat keine allgemeingültige, absolute Schwelle. Gut genug ist es für einen bestimmten Anwendungsfall, wenn relevante Einflussgrößen verknüpft und definiert sind, Qualität und Aktualität bekannt sind, Antworten nachvollziehbare Provenance tragen und der verbleibende Fehler im Verhältnis zu den Stakes vertretbar ist.
+
+Aus der Fallstudie und dem formalen Modell folgen sechs praktische Kernaussagen:
+\begin{enumerate}
+\item Die Qualität einer KI-Erklärung hängt maßgeblich von den verfügbaren Daten, ihren Verbindungen und ihrer fachlichen Bedeutung ab, nicht allein vom Modell.
+\item „Gut genug“ ist eine wirtschaftliche und anwendungsbezogene Bedingung: Je folgenreicher die Entscheidung, desto stärker müssen Fehler begrenzt und belegt werden.
+\item Vertrauen lässt sich schrittweise aufbauen – durch klare Definitionen, messbare Qualität, Provenance und benannte Verantwortliche.
+\item KI kann bereits heute als Hinweis und Gegenprüfung nützlich sein. Eine Abweichung zeigt mögliche Datenlücken auf, kann aber ebenso eine unvollständige eigene Analyse offenlegen.
+\item Ein Data Product schafft eine wiederverwendbare Grundlage für verschiedene Anwendungen; der Aufwand für gemeinsame Daten und Definitionen kann dadurch mehrfach Nutzen stiften.
+\item Vor einem Go-live müssen fachliche Definition, technische Lieferung und Freigabe des konkreten Anwendungsfalls jeweils einer verantwortlichen Person zugeordnet sein.
+\end{enumerate}
+
+\begin{quote}
+\textbf{Leitgedanke:} Nicht nur fragen, ob die KI gut genug ist, sondern ob das Datennetz für diese Frage gut genug ist. Bis dahin die KI als Hinweis nutzen, ihre Antworten mit der eigenen Analyse abgleichen und aus jeder Abweichung lernen.
+\end{quote}
+
+\section*{Danksagung}
+Die Arbeit basiert auf den Ideen und Folien von ai-data-network-economic-approach-en.md sowie auf den wissenschaftlichen Vorarbeiten des Autors zur wirtschaftlichen Bewertung eines SAT-Solvers und zu Wirtschaftssystemen unter Unsicherheit \cite{sat2026,uncertainty2026}.
+
+\appendix
+\section{Glossar}
+\begin{description}[style=nextline]
+\item[Datennetz] Gesamtheit der Unternehmensdaten und der fachlichen sowie technischen Verbindungen zwischen ihnen.
+\item[Data Product] Wiederverwendbare Einheit aus Daten, ihrer Bedeutung und einem Label mit Nutzungsvoraussetzungen und benannter Verantwortung.
+\item[DB\,I / DB\,II] Deckungsbeitrag I beziehungsweise II. In der Fallstudie bezeichnet „Marge“ die DB-II-Marge.
+\item[Data Owner] Fachlich verantwortliche Person für Bedeutung und Definition von Kennzahlen.
+\item[Data Steward] Unterstützt den Data Owner bei der laufenden Pflege und Anwendung fachlicher Regeln.
+\item[Data Product Owner] Verantwortet die Lieferung, Vollständigkeit, Aktualität, Prüfung und Berechtigung des Data Products.
+\item[Use-Case Owner] Verantwortet Freigabe und Testfragen einer KI-Anwendung, ihr Error Budget und die Grenze menschlicher Entscheidungen.
+\item[Granularität] Detailstufe eines Datensatzes, beispielsweise eine Zeile je Auftragsposition.
+\item[Provenance] Nachvollziehbare Angaben zu Definition, Quelle, Version und Datenstichtag einer Antwort.
+\item[Error Budget] Für einen Anwendungsfall zulässiger Fehler, bestimmt durch Stakes und mögliche Folgen.
+\item[Gegenprüfung (Cross-check)] Vergleich einer KI-Antwort mit eigener Analyse, Strategie oder fachlich geprüfter Referenz.
+\item[MCP] Model Context Protocol; ein Standard, über den KI-Anwendungen auf Daten und Werkzeuge zugreifen können.
+\item[Value of Information (VOI)] Erwarteter zusätzlicher Nutzen einer Information oder Datenverbesserung im Vergleich zu ihren Kosten.
+\end{description}
+
+\section{Formale Beweise und Erweiterungen}
+\subsection{Erweiterung: Nichtlineare Einflussmodelle}
+Die lineare Darstellung kann durch eine allgemeine nichtlineare Regressionsdarstellung $y^*=g(S_q)$ mit Lipschitz-Bedingung $(\exists L: |g(x)-g(x')|\le L\|x-x'\|)$ verallgemeinert werden. Dann gilt eine analoge Fehlerabschätzung:
+\[
+|\hat y-y^*| \le L\cdot \|S_q-\tilde S_q\| + |B_{def}| + |\eta|.
+\]
+
+\subsection{Beweisskizze: VOI-Berechnung}
+Mit Posterior $\pi_1(\theta)$ ist der erwartete Wert der Integration eines zusätzlichen Datenobjekts $z$:
+\[
+\E_{\pi_1}[\Delta W] = \sum_{\theta} \pi_1(\theta) \big( W(\text{with }z,\theta)-W(\text{without }z,\theta)\big).
+\]
+Dies kann numerisch über Simulation oder historische "what-if"-Analysen geschätzt werden.
+
+\bibliographystyle{plain}
+\begin{thebibliography}{9}
+\bibitem{webinar2026} Michael Sullmann (BE-terna), Webinar "Data Product and AI in Controlling", Okt 2026.
+\bibitem{sat2026} Stephan Epp. \emph{Wirtschaftliche Konsequenzen eines effizienten SAT-Solvers}. 12. Oktober 2026. \url{https://github.com/naphz86/subgraph-sat-solver-econ}.
+\bibitem{uncertainty2026} Stephan Epp. \emph{Wirtschaftssysteme unter Unsicherheit}. 3. September 2026. \url{https://github.com/naphets86/odd/tree/main/science/uncrtecos}.
+\end{thebibliography}
+
+\end{document}

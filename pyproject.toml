@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aidataeco"
+version = "0.1.0"
+description = "Wann ist das Datennetz gut genug für KI? Ausführbares Modell zur wissenschaftlichen Arbeit"
+authors = [
+    { name = "Stephan Epp" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    # Wiederverwendeter Entscheider-, Schaltkreis- und Wohlfahrtscode (Referenzprojekt).
+    # numpy und matplotlib bringt das Referenzprojekt selbst mit; sie werden hier nicht doppelt gepflegt.
+    "subgraph-sat-solver-econ @ git+https://github.com/naphz86/subgraph-sat-solver-econ.git",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "coverage",
+]
+
+[tool.setuptools]
+# Importname `aidataeco`: `src` ist als Paketname mehrdeutig (auch das Referenzprojekt nutzt ihn).
+packages = ["aidataeco"]
+package-dir = { aidataeco = "src" }
+
+[tool.coverage.run]
+source = ["src"]
+branch = true
+omit = [
+    "tests/*",
+    "venv/*",
+    ".venv/*",
+    "doc/*",
+]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+testpaths = ["tests"]
+pythonpath = [".", "src"]
+addopts = "-q --cov=src --cov-report=html:doc/coverage --cov-report=term-missing"
+markers = [
+    "unit: unit test",
+    "integration: component integration test",
+    "slow: computationally expensive test",
+]
