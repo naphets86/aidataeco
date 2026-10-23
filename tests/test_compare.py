@@ -10,7 +10,7 @@ from src.governance import ReliabilityLevel
 from src.report import NodeStatus, build_report
 from src.spec import answers_for, parse_spec
 
-from sample_data import Q2, TODAY, base_answers, base_data
+from sample_data import Q1, Q2, TODAY, base_answers, base_data
 
 VERSIONS = {"python": "3.11.0"}
 
@@ -68,6 +68,20 @@ def test_degradation_is_reported_per_metric_and_as_new_blockers():
     assert improved.resolved_blockers == comparison.new_blockers
     assert {c.metric for c in improved.changes if c.direction is Direction.IMPROVED} \
         == {c.metric for c in comparison.regressions}
+
+
+def test_a_better_pass_rate_below_the_minimum_is_not_a_new_blocker():
+    worse_answers = base_answers()
+    worse_answers[Q1]["value"] = 99
+    worse_answers[Q2]["value"] = 99
+    better_answers = base_answers()
+    better_answers[Q2]["value"] = 99
+    worse, better = _report(answers=worse_answers), _report(answers=better_answers)
+    assert worse.evaluation.pass_rate < better.evaluation.pass_rate < Fraction(1, 2)
+    assert worse.blockers == better.blockers
+    comparison = compare_reports(worse, better)
+    assert comparison.new_blockers == () and not comparison.has_regression
+    assert any(c.metric == "Bestehensquote" and c.direction is Direction.IMPROVED for c in comparison.changes)
 
 
 def test_a_replaced_blocker_counts_as_regression_even_with_equal_counts():

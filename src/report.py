@@ -284,7 +284,9 @@ def build_report(spec: Spec, answers: Sequence[Answer], today: date, expected_lo
         if evaluation is None:
             blockers.append("Nachweis fehlt: Bestehensquote (keine Referenzfälle)")
         elif evaluation.pass_rate < threshold:
-            blockers.append(f"Bestehensquote {evaluation.pass_rate} liegt unter dem Mindestwert {threshold}")
+            # Ohne Zahlenwerte im Text: Das Hindernis ist ein Tag (B5 = {pass}); ändert sich nur die Quote,
+            # ist es kein neues Hindernis, und der Vergleich meldet keine Regression.
+            blockers.append("Bestehensquote liegt unter dem Mindestwert")
     versions = collect_versions() if versions is None else versions
     fingerprint = ExperimentRecord(
         name="golive", config=spec.raw,

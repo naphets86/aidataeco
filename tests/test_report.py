@@ -72,7 +72,7 @@ def test_pass_rate_below_the_minimum_blocks():
     answers[Q2]["value"] = 99
     report = _report(answers=answers)
     assert report.evaluation.pass_rate == Fraction(1, 4)
-    assert "Bestehensquote 1/4 liegt unter dem Mindestwert 1/2" in report.blockers
+    assert "Bestehensquote liegt unter dem Mindestwert" in report.blockers
     data = base_data()
     del data["use_case"]["min_pass_rate"]
     assert _report(data, answers).blockers == ()
@@ -251,5 +251,5 @@ def test_example_specification_reproduces_the_case_study():
     assert report.missing_links == (("orders", "freight"),)
     assert report.budget_limit == 22 and report.blocked
     assert report.evidence.human_decides and not report.evidence.error_budget_met
-    assert "Bestehensquote 1/6 liegt unter dem Mindestwert 3/4" in report.blockers
+    assert "Bestehensquote liegt unter dem Mindestwert" in report.blockers
     assert "Aktualität nicht belegt: products" in report.blockers
