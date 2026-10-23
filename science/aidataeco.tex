@@ -12,6 +12,10 @@
 \usepackage{listings}
 \usepackage{xcolor}
 \usepackage{enumitem}
+\usepackage{float}
+\usepackage{placeins}
+\usepackage{array}
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
 % \usepackage{microtype}
 % Zeilenumbruch: verhindert Überläufe über den rechten Rand, wo die Silbentrennung nicht reicht.
 \setlength{\emergencystretch}{12em}
@@ -62,7 +66,7 @@ Diese Arbeit untersucht, wann das Datennetz eines Unternehmens für eine konkret
 \section{Einleitung}
 Die drei leitenden Gedanken dieser Arbeit sind eng miteinander verbunden. Erstens hängt Vertrauen in eine Antwort nicht davon ab, ob sie vollkommen fehlerfrei ist, sondern davon, ob ein möglicher Fehler für den konkreten Verwendungszweck klein genug ist. Zweitens bezeichnet das Datennetz mehr als die Summe gespeicherter Daten: Entscheidend sind auch Verknüpfungen, Zugriffswege, gemeinsame Definitionen und Aktualität. Dasselbe KI-Modell kann deshalb auf einem gut verbundenen Netz nützliche und auf einem fragmentierten Netz irreführende Antworten geben. Drittens können KI-Antworten bereits vor vollständiger Datenreife als Hinweise und Gegenprüfung der eigenen wirtschaftlichen Analyse nützlich sein.
 
-Diese Perspektive vermeidet zwei Extreme: KI-Antworten weder blind als Wahrheit zu übernehmen noch den Einsatz bis zu einer unerreichbaren Perfektion der Daten aufzuschieben. Stattdessen werden Nutzung und Autonomie nach den möglichen Folgen eines Fehlers gestuft. Die Arbeit führt zunächst in die Lücke zwischen KI-Ambition und Datenreife ein und erläutert eine Fallstudie zur sinkenden Marge. Danach folgen ein formales Modell, eine ökonomische Bedingung für ausreichende Qualität und ein Lernkreislauf für Abweichungen. Abschließend werden Data Products, Verantwortlichkeiten, Umsetzungsschritte, Unternehmensgrößen, Messgrößen, ein deterministisches Prüfverfahren mit Freigabebericht und Regressionsvergleich sowie eine Go-live-Checkliste behandelt.
+Diese Perspektive vermeidet zwei Extreme: KI-Antworten weder blind als Wahrheit zu übernehmen noch den Einsatz bis zu einer unerreichbaren Perfektion der Daten aufzuschieben. Stattdessen werden Nutzung und Autonomie nach den möglichen Folgen eines Fehlers gestuft. Die Arbeit führt zunächst in die Lücke zwischen KI-Ambition und Datenreife ein und erläutert eine Fallstudie zur sinkenden Marge. Danach folgen ein formales Modell, eine ökonomische Bedingung für ausreichende Qualität und ein Lernkreislauf für Abweichungen. Abschließend werden Data Products, Verantwortlichkeiten, Umsetzungsschritte, Unternehmensgrößen, typische Stolperfallen, Messgrößen, ein deterministisches Prüfverfahren mit Freigabebericht und Regressionsvergleich sowie eine Go-live-Checkliste behandelt.
 
 \section{Ausgangslage: KI-Ambition und Datenreife}
 \label{sec:starting-point}
@@ -362,7 +366,8 @@ Ein einmal aufgebautes Data Product kann mehreren Anwendungen dienen: Controllin
 \end{quote}
 Ein eng umrissenes Data Product mit wenigen zentralen Treibern ist meist ein besserer Startpunkt als der Versuch, sofort ein unternehmensweit vollständiges Modell zu bauen.
 
-\section{Freigabe, Vorgehen und Stoplerfallen}
+\section{Freigabe, Vorgehen und Stolperfallen}
+\label{sec:release}
 
 \subsection{Verantwortung und Freigabe}
 
@@ -402,13 +407,17 @@ Ein praktikabler Aufbau beginnt mit einer geschäftlich wichtigen, aber begrenzt
 \end{enumerate}
 
 \subsubsection{Mittelstand und Großunternehmen}
-Das wirtschaftliche Prinzip bleibt gleich; Umfang und Governance unterscheiden sich.
-\begin{table}[htbp]
+\label{sec:company-size}
+Das wirtschaftliche Prinzip bleibt unabhängig von der Unternehmensgröße gleich: Die Stufe, auf der eine KI-Anwendung betrieben werden darf, richtet sich nach den Stakes der Entscheidung, nach dem Error Budget und nach den vorliegenden Nachweisen (Abschnitt~\ref{sec:error}), nicht nach der Größe der Organisation. Was sich mit der Größe ändert, sind die Ausgangslage der Datenlandschaft, der sinnvolle Zuschnitt des ersten Data Products, die Aufteilung der drei Verantwortlichkeiten, das typische Hauptrisiko und die Hebel, mit denen sich Nutzen erzielen lässt. Tabelle~\ref{tab:company-size} stellt diese fünf Aspekte gegenüber; die anschließenden Absätze erläutern jede Zeile im Zusammenhang mit dem formalen Modell und der Fallstudie.
+
+Die Gegenüberstellung ist bewusst idealtypisch. Sie beruht auf konzeptionellen Überlegungen dieser Arbeit und ist keine empirisch geprüfte Klassifikation; eine feste Schwelle (etwa nach Mitarbeiterzahl oder Umsatz), ab der ein Unternehmen „Mittelstand“ oder „Großunternehmen“ im Sinne der Tabelle ist, wird nicht behauptet. Reale Organisationen liegen häufig dazwischen: Ein mittelständischer Zulieferer mit mehreren Standorten kennt ähnliche Silos wie ein Konzern, und ein kleiner Geschäftsbereich eines Konzerns kann wie ein Mittelständler arbeiten. Maßgeblich ist daher nicht das Etikett, sondern die Frage, welche der beiden Spalten die eigene Situation für einen konkreten Anwendungsfall besser beschreibt.
+
+\begin{table}[H]
 \centering
 \small
 \caption{Schwerpunktunterschiede bei der Umsetzung}
 \label{tab:company-size}
-\begin{tabular}{p{0.18\linewidth}p{0.36\linewidth}p{0.36\linewidth}}
+\begin{tabular}{P{0.18\linewidth}P{0.36\linewidth}P{0.36\linewidth}}
 \toprule
 \textbf{Aspekt} & \textbf{Mittelstand} & \textbf{Großunternehmen} \\
 \midrule
@@ -421,32 +430,103 @@ Hebel & Schneller Nutzen durch Abgleich mit der Controlling-Analyse; schlanke, a
 \end{tabular}
 \end{table}
 
-Im Mittelstand sollte der Einstieg von der wichtigsten Geschäftsfrage ausgehen, nicht von einer vollständigen technischen Inventur. Bestehende Expertise im Controlling kann die erste Referenz bilden; die Rollen bleiben auch dann ausdrücklich benannt, wenn eine Person mehrere übernimmt. Die ersten Anwendungen sollten in der Regel auf Hinweis- und Gegenprüfungsstufe bleiben.
+\paragraph{Ausgangslage.}
+Im Mittelstand besteht die Datenlandschaft häufig aus wenigen Kernsystemen, etwa einem ERP-System, einer Vertriebs- und einer Logistiklösung sowie ergänzenden Tabellenkalkulationen. Das hat zwei Seiten. Einerseits sind die Wege kurz: Wer im Controlling arbeitet, kennt oft informell, welche Zahl aus welchem System stammt und wie Fracht, Aufträge und Kunden zusammenhängen. Andererseits liegt dieses Wissen häufig in Köpfen statt in dokumentierten Verknüpfungen, und Spezialressourcen für Datenintegration sind knapp. In der Fallstudie zeigt sich genau dieses Muster: Die Expressfracht war im Logistiksystem gebucht, aber nicht mit den verursachenden Aufträgen verbunden, und die Produktgruppe fehlte im zugänglichen Datennetz. Beides war den Fachleuten vermutlich bekannt, für die KI aber unsichtbar. Im Sinne des formalen Modells sind die Knoten des Netzes überschaubar, doch notwendige Kanten fehlen, weil sie nur implizit existieren.
 
-Großunternehmen schneiden Data Products sinnvollerweise nach Geschäftsdomänen und fachlicher Granularität statt nur nach Technologie. Definitionen zwischen Bereichen müssen früh harmonisiert oder mit eindeutigem Geltungsbereich dokumentiert werden. Wiederverwendung bestehender Produkte wird zum Standard; Rechte und Protokolle gelten auch für KI-Agenten. Ein höheres Autonomieniveau wird für jeden Anwendungsfall anhand seiner Stakes und Testergebnisse separat freigegeben.
+In Großunternehmen ist die Lage eine andere. Viele Systeme, Geschäftsbereiche und Standorte haben sich historisch unabhängig voneinander entwickelt; dasselbe Konzept wird in verschiedenen Silos unterschiedlich benannt, abgegrenzt und gepflegt. Das Datennetz $G$ ist groß, die Knoten unterscheiden sich stark in Qualität $q_v$ und Aktualität $t_v$, und der Nachweis, dass zwei Datenbestände verbunden sind (Abschnitt~\ref{sec:operationalization}), ist über Systemgrenzen hinweg aufwendiger zu führen. Das Problem ist weniger, dass niemand die Zusammenhänge kennt, sondern dass niemand sie vollständig kennt und dass sie sich je nach Bereich unterscheiden.
+
+\paragraph{Start.}
+Für den Mittelstand empfiehlt sich der Einstieg über einen Geschäftsbereich, ein Data Product und wenige entscheidende Fragen, im Beispiel „Sales Result 360“ mit der Frage nach den Ursachen einer sinkenden DB-II-Marge. Das entspricht der Faustregel aus Abschnitt~\ref{sec:data-product}: ein Geschäftsbereich, eine Granularität, ein verantwortlicher Owner, viele Fragestellungen. Ein eng geschnittenes Produkt lässt sich mit begrenztem Personal aufbauen, liefert früh überprüfbare Ergebnisse und erzeugt die Erfahrung, die für weitere Produkte nötig ist. Eine vollständige technische Inventur aller Systeme würde dagegen Ressourcen binden, bevor ein erster Nutzen sichtbar ist.
+
+Großunternehmen werden typischerweise mehrere domänenspezifische Data Products aufbauen, etwa für Vertrieb, Logistik und Produktion. Damit diese Produkte zusammen Antworten tragen, müssen sie sich auf gemeinsame Definitionen stützen oder ihren jeweiligen Geltungsbereich ausdrücklich dokumentieren. Der Zuschnitt sollte sich an fachlichen Domänen und an der Granularität der Fragen orientieren und nicht allein an der eingesetzten Technologie. Der Versuch, in einem Schritt ein unternehmensweit vollständiges Modell zu bauen, verschiebt den Nutzen in die ferne Zukunft und scheitert häufig an den Abstimmungskosten.
+
+\paragraph{Verantwortung.}
+Die drei Rollen aus Tabelle~\ref{tab:accountabilities} können in kleinen Organisationen in Personalunion wahrgenommen werden. Das ist zulässig, sofern die Zuordnung schriftlich festgehalten wird. Ein Beispiel ist eine Controllerin, die zugleich Data Owner ist und die Referenzfragen als Use-Case Owner verantwortet. In diesem Fall entsteht jedoch ein Interessenkonflikt: Wer die Definition von „Marge“ festlegt und zugleich beurteilt, ob die KI-Antwort sie richtig anwendet, prüft sich teilweise selbst. Vor allem auf den Stufen~3 und~4 empfiehlt sich deshalb, die Entscheidungen zumindest gedanklich und in der Dokumentation zu trennen und, wo möglich, eine zweite Person hinzuzuziehen. Im Verfahren der Operationalisierung führt eine nicht benannte Rolle ($\rho_r=\bot$) zu einem Freigabehindernis; eine Personalunion hingegen nicht, weil die Benennung genügt.
+
+In Großunternehmen werden die Rollen getrennt und im Alltag durch Data Stewards unterstützt. Das erhöht die Sorgfalt und die Skalierbarkeit, schafft aber ein anderes Risiko, nämlich diffuse Verantwortung: Wenn mehrere Bereiche an einem Data Product beteiligt sind, kann jeder annehmen, ein anderer reagiere auf fehlende Frachtangaben oder veraltete Daten. Klare Zuständigkeiten, Vertretungsregeln und ein Eskalationsweg sind deshalb wichtiger als zusätzliche Gremien.
+
+\paragraph{Hauptrisiko.}
+Im Mittelstand besteht das Hauptrisiko darin, dass Datenlücken unentdeckt bleiben, wenn niemand systematisch gegenprüft. Weil Prozesse kurz sind und die Beteiligten sich kennen, entsteht leicht der Eindruck, es sei bekannt, was die Daten hergeben. Die Fallstudie zeigt das Gegenteil: Die KI-Antwort erklärte nur etwa 14\,\% der Abweichung, und ohne den Abgleich mit der Controlling-Analyse wäre das nicht aufgefallen. Die systematische Gegenprüfung (Abschnitt~\ref{sec:opportunity}) ist daher im Mittelstand weniger ein Zusatz als die wichtigste Schutzmaßnahme.
+
+In Großunternehmen steht ein anderes Risiko im Vordergrund: Widersprüchliche Begriffe führen zu inkonsistenten Antworten zwischen Bereichen. Ein Begriff wie „Marge“ kann den Deckungsbeitrag~I, den Deckungsbeitrag~II oder eine konzernweit definierte Kennzahl meinen. Im Fehlermodell entspricht das dem Bias aus uneinheitlicher Definition $B_{def}$; die Daten selbst können korrekt sein, und die Antworten weichen dennoch voneinander ab. Hinzu kommt, dass solche Inkonsistenzen mit der Zahl der beteiligten Bereiche und der Anwendungen wachsen, die dieselben Begriffe verwenden.
+
+\paragraph{Hebel.}
+Der wichtigste Hebel des Mittelstands ist der schnelle Nutzen durch den Abgleich mit der bestehenden Controlling-Analyse, verbunden mit einer schlanken, aber expliziten Governance. Schlank heißt, dass ein kurzes Label, wenige belastbare Referenzfragen und benannte Personen genügen können, solange die Anwendung auf den Stufen~1 und~2 bleibt, also als Hinweis und Gegenprüfung dient. Explizit heißt, dass auch die kleine Lösung ihre Definitionen, Verantwortlichen und Grenzen schriftlich ausweist.
+
+Der Hebel großer Organisationen liegt in der Wiederverwendung: Der Aufwand für verlässliche Verknüpfungen, Definitionen und Rechte wird einmal investiert und kann mehreren Anwendungen dienen. Standardisierte Rechte und Protokolle gelten dann auch für KI-Agenten, etwa wenn sie über MCP auf ein Data Product zugreifen. Eine höhere Autonomiestufe wird nicht pauschal für das Unternehmen, sondern für jeden Anwendungsfall anhand seiner Stakes und seiner Testergebnisse gesondert freigegeben. Damit wird verhindert, dass ein gelungener Einsatz mit niedrigen Stakes stillschweigend auf einen Anwendungsfall mit hohen Stakes übertragen wird.
+
+\paragraph{Übergang und Grenzen.}
+Die beiden Spalten beschreiben keine getrennten Welten, sondern Pole eines Kontinuums. Ein Mittelständler, der sein erstes Data Product erfolgreich betreibt, wird früher oder später ein zweites anschließen. Spätestens wenn mehrere Anwendungen dasselbe Produkt nutzen oder erstmals Definitionskonflikte zwischen Bereichen auftreten, werden Elemente der rechten Spalte sinnvoll, etwa ein Steward für die laufende Pflege oder ein gemeinsames Verzeichnis von Synonymen. Umgekehrt kann ein Großunternehmen in einem Pilotbereich zunächst wie ein Mittelständler beginnen. Die Arbeit gibt dafür keine Schwelle vor; die Tabelle ist eine Entscheidungshilfe, die die verantwortliche Person auf die eigene Organisation anwenden muss.
 
 \subsection{Stolperfallen}
+\label{sec:pitfalls}
 
-\begin{table}[htbp]
+Auch ein sorgfältig aufgebautes Data Product schützt nicht vor typischen Fehlannahmen im Umgang mit KI-Antworten. Die Fallstudie hat bereits mehrere davon gezeigt: Eine flüssige Antwort wurde als vollständige Erklärung gelesen, die Ursache wurde zunächst im Modell statt im Datennetz vermutet, und die größten Treiber blieben unsichtbar. Dieser Abschnitt ordnet acht häufige Stolperfallen und beschreibt für jede, wie sie entsteht, welche Folge sie hat und welche Gegenmaßnahme sich aus dem Konzept der Arbeit ergibt. Die Auswahl ist eine konzeptionelle Zusammenstellung und erhebt keinen Anspruch auf Vollständigkeit oder empirische Häufigkeit.
+
+Die Stolperfallen lassen sich drei Gruppen zuordnen. Die erste betrifft die \emph{Beurteilung von Antworten}: flüssige Antworten mit korrekten verwechseln (Nr.~1), sofort das Modell verantwortlich machen (Nr.~2) und die KI als alleinige Autorität einsetzen (Nr.~3). Die zweite betrifft die \emph{Datengrundlage und ihre Pflege}: Kennzahlen nicht definieren (Nr.~4), relevante Daten unsichtbar lassen (Nr.~5) und keine Testfragen pflegen (Nr.~6). Die dritte betrifft \emph{Tempo und Autonomie} und besteht aus zwei entgegengesetzten Fehlern: auf Perfektion warten (Nr.~7) und die Autonomie zu früh erhöhen (Nr.~8). Tabelle~\ref{tab:pitfalls} fasst alle acht Punkte in der Reihenfolge dieser Gruppen zusammen; die folgenden Absätze erläutern sie einzeln.
+
+\begin{table}[!t]
 \centering
 \small
 \caption{Häufige Fehlannahmen und geeignete Gegenmaßnahmen}
 \label{tab:pitfalls}
-\begin{tabular}{p{0.22\linewidth}p{0.32\linewidth}p{0.38\linewidth}}
+\begin{tabular}{P{0.05\linewidth}P{0.21\linewidth}P{0.29\linewidth}P{0.33\linewidth}}
 \toprule
-\textbf{Stolperfalle} & \textbf{Mögliche Folge} & \textbf{Gegenmaßnahme} \\
+\textbf{Nr.} & \textbf{Stolperfalle} & \textbf{Mögliche Folge} & \textbf{Gegenmaßnahme} \\
 \midrule
-Flüssige Antworten mit korrekten Antworten verwechseln & Plausible, aber unvollständige Aussagen werden ungeprüft übernommen. & Definition, Quelle und Datenstichtag einfordern. \\
-Sofort das Modell verantwortlich machen & Wechsel des Modells lässt fehlende Quellen und Verknüpfungen bestehen. & Abweichungen zuerst im Datennetz und in den Definitionen untersuchen. \\
-Auf Perfektion warten & Nützliche, risikoarme Anwendungen werden unbegrenzt vertagt. & Mit klar begrenzten Hinweisen und Gegenprüfungen beginnen. \\
-KI als alleinige Autorität einsetzen & Eine einzelne Antwort löst eine ungeprüfte Entscheidung aus. & Eigene Analyse gegenprüfen, insbesondere bei hohen Stakes. \\
-Kennzahlen nicht definieren & Personen und Werkzeuge berechnen „Marge“ unterschiedlich. & Data Owner benennt und genehmigt Definitionen sowie Synonyme. \\
-Relevante Daten bleiben unsichtbar & Fachbereichsübergreifende Daten gehen der Analyse verloren. & Quellen und Beziehungen in das Data Product aufnehmen und Verantwortung zuweisen. \\
-Keine Testfragen pflegen & Qualitätsabfall bleibt unbemerkt. & Use-Case Owner hält Referenzfragen und erwartete Antworten aktuell. \\
-Autonomie zu früh erhöhen & Unvollständige Informationen lösen Maßnahmen ohne menschliche Prüfung aus. & Freigabe, Protokollierung und menschliche Eingriffspunkte vorschreiben. \\
+\multicolumn{4}{l}{\emph{Beurteilung von Antworten}} \\
+1 & Flüssige Antworten mit korrekten Antworten verwechseln & Plausible, aber unvollständige Aussagen werden ungeprüft übernommen. & Definition, Quelle und Datenstichtag einfordern. \\
+2 & Sofort das Modell verantwortlich machen & Wechsel des Modells lässt fehlende Quellen und Verknüpfungen bestehen. & Abweichungen zuerst im Datennetz und in den Definitionen untersuchen. \\
+3 & KI als alleinige Autorität einsetzen & Eine einzelne Antwort löst eine ungeprüfte Entscheidung aus. & Eigene Analyse gegenprüfen, insbesondere bei hohen Stakes. \\
+\midrule
+\multicolumn{4}{l}{\emph{Datengrundlage und Pflege}} \\
+4 & Kennzahlen nicht definieren & Personen und Werkzeuge berechnen „Marge“ unterschiedlich. & Data Owner benennt und genehmigt Definitionen sowie Synonyme. \\
+5 & Relevante Daten bleiben unsichtbar & Fachbereichsübergreifende Daten gehen der Analyse verloren. & Quellen und Beziehungen in das Data Product aufnehmen und Verantwortung zuweisen. \\
+6 & Keine Testfragen pflegen & Qualitätsabfall bleibt unbemerkt. & Use-Case Owner hält Referenzfragen und erwartete Antworten aktuell. \\
+\midrule
+\multicolumn{4}{l}{\emph{Tempo und Autonomie}} \\
+7 & Auf Perfektion warten & Nützliche, risikoarme Anwendungen werden unbegrenzt vertagt. & Mit klar begrenzten Hinweisen und Gegenprüfungen beginnen. \\
+8 & Autonomie zu früh erhöhen & Unvollständige Informationen lösen Maßnahmen ohne menschliche Prüfung aus. & Freigabe, Protokollierung und menschliche Eingriffspunkte vorschreiben. \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\subsubsection{Beurteilung von Antworten}
+
+\paragraph{Nr.~1: Flüssige Antworten mit korrekten verwechseln.}
+Sprachmodelle formulieren auch dann geschlossen und selbstsicher, wenn ihre Datengrundlage lückenhaft ist. Sprachliche Qualität ist deshalb kein Indikator für inhaltliche Vollständigkeit. In der Fallstudie klang die Empfehlung zu Rabattgenehmigungen und Neuverhandlungen plausibel und konkret, enthielt aber weder eine Quellenangabe noch einen Datenstichtag und erklärte nur rund 14\,\% der Abweichung. Wer die Antwort nur nach ihrem Eindruck beurteilt, hätte den Mangel nicht bemerkt. Die Gegenmaßnahme besteht darin, Definition, Quelle und Datenstichtag systematisch einzufordern; das entspricht der Provenance aus Abschnitt~\ref{sec:formal}. Messbar wird sie über die Provenance-Abdeckung in Tabelle~\ref{tab:metrics}, und im Prüfverfahren hängt der Nachweis $e_{\mathrm{prov}}$ daran, dass jede Antwort eine vollständige Provenance trägt (Definition~\ref{def:evidence}).
+
+\paragraph{Nr.~2: Sofort das Modell verantwortlich machen.}
+Wenn eine Antwort enttäuscht, liegt die Vermutung nahe, das Modell sei zu schwach. Diese Annahme führt in die Irre, wenn die Ursache im Netz liegt. Fehlen Fracht-Auftrag-Verknüpfung und Produktgruppe, findet auch ein leistungsfähigeres Modell dieselben Lücken vor und kann die fehlenden Treiber nicht erfinden; ein Modellwechsel verbraucht dann Zeit und Budget, ohne den Fehler zu verändern. Der Fehleranteil aus fehlenden Einflussgrößen $B_{miss}$ und aus uneinheitlichen Definitionen $B_{def}$ (Abschnitt~\ref{sec:error}) ist vom Modell weitgehend unabhängig. Die Gegenmaßnahme ist eine feste Reihenfolge der Ursachenprüfung, wie sie Tabelle~\ref{tab:deviation-causes} beschreibt: zuerst Quellen, Attribute, Definitionen und Aktualität, dann die eigene Analyse, erst danach das Modell. Das schließt nicht aus, dass ein Modell tatsächlich schwach sein kann; es soll nur verhindern, dass diese Erklärung die einfachste Antwort ist und deshalb zuerst gewählt wird.
+
+\paragraph{Nr.~3: KI als alleinige Autorität einsetzen.}
+Wird eine einzelne Antwort ohne Gegenprüfung zur Grundlage einer Entscheidung, hängt das Risiko vollständig von der Qualität dieser einen Antwort ab. Im Beispiel hätte die Rabattverhandlung mit dem Kunden Nord, der 2{,}0\,Mio.\,€ Umsatz erwirtschaftete, eine Geschäftsbeziehung belastet, während die größte Ursache, die Expressfracht mit 230\,T€, unberührt geblieben wäre. Je höher die Stakes, desto weniger darf eine Antwort allein tragen (Tabelle~\ref{tab:stakes}). Die Gegenmaßnahme besteht darin, die Antwort mit der eigenen Analyse, der Strategie oder einer fachlich geprüften Referenz abzugleichen und einen Menschen entscheiden zu lassen, solange keine Automatisierung auf Stufe~4 ausdrücklich freigegeben ist. Auf Stufe~3 ist die Forderung, dass ein Mensch entscheidet, deshalb ein eigener Nachweis im Prüfverfahren ($e_{\mathrm{hum}}$).
+
+\subsubsection{Datengrundlage und Pflege}
+
+\paragraph{Nr.~4: Kennzahlen nicht definieren.}
+Begriffe wie „Marge“ werden im Alltag selbstverständlich verwendet, aber nicht immer gleich verstanden. Meint der Controller den Deckungsbeitrag~II, der Vertrieb den Deckungsbeitrag~I und die KI eine aus dem Kontext geratene Größe, entsteht ein Unterschied, der keiner Datenlücke entspricht und trotzdem zu abweichenden Antworten führt. Diese Stolperfalle erzeugt den Definitionsbias $B_{def}$ und ist besonders tückisch, weil jede beteiligte Zahl für sich korrekt sein kann. Die Gegenmaßnahme ist, dass der Data Owner Kennzahlen, Synonyme und Geltungsbereich festlegt und abzeichnet (Tabelle~\ref{tab:meaning}). Im Prüfverfahren ist die Definition jedes Kennzahlbegriffs, auch über ein Synonym, Teil des Nachweises $e_{\mathrm{kpi}}$.
+
+\paragraph{Nr.~5: Relevante Daten bleiben unsichtbar.}
+Daten, die in einem anderen Fachbereich oder System liegen, gehen der Analyse verloren, wenn sie nicht ins Data Product aufgenommen und mit den übrigen Daten verknüpft werden. Das war in der Fallstudie die Hauptursache: Expressfracht und Produktmix machten zusammen rund 86\,\% der Abweichung aus und waren für die KI nicht sichtbar. Besonders schwer zu erkennen ist das, weil die vorhandenen Daten selbst unauffällig sind; das Problem ist, was fehlt. Die Gegenmaßnahme besteht darin, die wesentlichen Einflussgrößen zuvor mit Fachleuten zu benennen (Schritt~2 des Vorgehens), Quellen und Beziehungen ins Data Product aufzunehmen und die Verantwortung dafür dem Data Product Owner zuzuweisen. Das Prüfverfahren fordert dazu, dass alle geforderten Verknüpfungen nachweisbar sind, sonst bleibt $e_{\mathrm{kpi}}=0$.
+
+\paragraph{Nr.~6: Keine Testfragen pflegen.}
+Ein Data Product wird nach dem Go-live verändert: Quellsysteme werden angepasst, Definitionen verfeinert, Modelle ausgetauscht und Berechtigungen geändert. Ohne gepflegte Referenzfragen mit erwarteten Antworten bleibt unbemerkt, wenn die Qualität nachlässt. Die Gefahr ist schleichend, weil einzelne Antworten weiterhin plausibel wirken. Als Gegenmaßnahme hält der Use-Case Owner die Referenzfragen aktuell, gewichtet sie nach Stakes und führt sie nach jeder relevanten Änderung erneut aus (Abschnitt~\ref{sec:metrics}). Zwei Grenzen sind zu beachten: Ein hoher Wert auf leicht beantwortbaren Fragen sagt wenig über seltene, aber folgenreiche Ausnahmen aus, und ein Vergleich über die Zeit ist nur aussagekräftig, wenn der Testsatz unverändert blieb (Bemerkung zu den Grenzen des Vergleichs).
+
+\subsubsection{Tempo und Autonomie}
+
+\paragraph{Nr.~7: Auf Perfektion warten.}
+Die Forderung nach vollständig fehlerfreien Daten ist praktisch unerreichbar und, wie die ökonomische Gut-genug-Bedingung zeigt, auch nicht nötig. Wer den Einsatz bis dahin verschiebt, verzichtet auf Hinweise und Gegenprüfungen, die schon bei geringer Abdeckung nützlich sind; im Margenbeispiel war der Rabatthinweis wahr und prüfenswert, obwohl er nur einen kleinen Teil erklärte. Zudem entgeht dem Unternehmen der Lerneffekt: Abweichungen zeigen, wo Investitionen in Daten den größten Nutzen bringen (Abschnitt~\ref{sec:opportunity}). Die Gegenmaßnahme ist, mit klar begrenzten Anwendungen auf den Stufen~1 und~2 zu beginnen, ihre Grenzen offen auszuweisen und die Stufe erst bei belegtem Reifegrad zu erhöhen.
+
+\paragraph{Nr.~8: Autonomie zu früh erhöhen.}
+Das Gegenstück zum Warten ist die voreilige Automatisierung. Läuft eine Anwendung über einige Zeit unauffällig, entsteht der Wunsch, sie ohne menschliche Prüfung Maßnahmen auslösen zu lassen. Fehlen dabei Informationen, wie sie in der Fallstudie fehlten, werden Maßnahmen auf unvollständiger Grundlage ausgeführt, und der Schaden tritt ein, bevor ihn jemand bemerkt. Eine höhere Stufe folgt nicht daraus, dass die vorherige eine Zeit lang funktioniert hat, sondern setzt einen belegbaren Reifegrad voraus (Abschnitt~\ref{sec:error}). Die Gegenmaßnahme ist, für Stufe~4 ausdrückliche Freigabe, Protokollierung und menschliche Eingriffspunkte vorzuschreiben; im Prüfverfahren sind das die Nachweise $e_{\mathrm{app}}$, $e_{\mathrm{log}}$ und $e_{\mathrm{int}}$.
+
+\subsubsection{Wechselwirkungen und Frühwarnzeichen}
+Die acht Stolperfallen treten selten einzeln auf. Wer flüssige Antworten für korrekt hält (Nr.~1) und die KI zugleich als Autorität ansieht (Nr.~3), ist besonders anfällig dafür, die Autonomie zu früh zu erhöhen (Nr.~8). Nicht definierte Kennzahlen (Nr.~4) und unsichtbare Daten (Nr.~5) erzeugen Abweichungen, die ohne Testfragen (Nr.~6) niemand systematisch auswertet, und wer dann vorschnell das Modell verantwortlich macht (Nr.~2), schließt die Lücke nicht. Die Nummern~7 und~8 bilden ein Spannungsfeld: Wer zu lange wartet, verschenkt Nutzen; wer zu früh automatisiert, trägt unnötige Risiken. Das Stufenmodell der Arbeit (Tabelle~\ref{tab:reliability-levels}) löst diese Spannung, indem es mit niedrigem Risiko beginnt und jeden weiteren Schritt an Nachweise bindet.
+
+Als Frühwarnzeichen eignen sich Beobachtungen, die sich ohne großen Aufwand erheben lassen: Antworten ohne Quellenangabe oder Stichtag, ein Modellwechsel als Reaktion auf eine Abweichung, Begriffe ohne benannte Verantwortliche, Testfragen mit veraltetem Datum, Anwendungen, die ohne dokumentierte Freigabe Handlungen auslösen, sowie Projekte, deren Start an dem Wunsch nach vollständigen Daten hängt. Wer eines oder mehrere dieser Zeichen beobachtet, sollte die Checkliste in Abschnitt~\ref{sec:checklist} durchgehen und die Freigabe des Anwendungsfalls zurückstellen, bis die Ursache geklärt ist.
+
+\FloatBarrier
 
 \section{Fortschritt messen}
 \label{sec:metrics}
@@ -704,10 +784,41 @@ Mit Posterior $\pi_1(\theta)$ ist der erwartete Wert der Integration eines zusä
 Dies kann numerisch über Simulation oder historische "what-if"-Analysen geschätzt werden.
 
 \bibliographystyle{plain}
-\begin{thebibliography}{9}
+\begin{thebibliography}{99}
 \bibitem{webinar2026} Michael Sullmann (BE-terna), Webinar "Data Product and AI in Controlling", Okt 2026.
 \bibitem{sat2026} Stephan Epp. \emph{Wirtschaftliche Konsequenzen eines effizienten SAT-Solvers}. 12. Oktober 2026. \url{https://github.com/naphets86/subgraph-sat-solver-econ}.
 \bibitem{uncertainty2026} Stephan Epp. \emph{Wirtschaftssysteme unter Unsicherheit}. 3. September 2026. \url{https://github.com/naphets86/odd/tree/main/science/uncrtecos}.
+
+\bibitem{abraham2019} Abraham, R., Schneider, J., vom Brocke, J.: Data governance: A conceptual framework, structured review, and research agenda. \emph{International Journal of Information Management} 49, 424--438, 2019.
+\bibitem{amodei2016} Amodei, D., Olah, C., Steinhardt, J., Christiano, P., Schulman, J., Mané, D.: Concrete Problems in AI Safety. arXiv:1606.06565, 2016.
+\bibitem{batini2009} Batini, C., Cappiello, C., Francalanci, C., Maurino, A.: Methodologies for Data Quality Assessment and Improvement. \emph{ACM Computing Surveys} 41(3), Article 16, 2009.
+\bibitem{breck2017} Breck, E., Cai, S., Nielsen, E., Salib, M., Sculley, D.: The ML Test Score: A Rubric for ML Production Readiness and Technical Debt Reduction. In: \emph{Proceedings of the IEEE International Conference on Big Data}, 1123--1132, 2017.
+\bibitem{buneman2001} Buneman, P., Khanna, S., Tan, W.-C.: Why and Where: A Characterization of Data Provenance. In: \emph{Database Theory -- ICDT 2001}, LNCS 1973, 316--330, Springer, 2001.
+\bibitem{dama2017} DAMA International: \emph{DAMA-DMBOK: Data Management Body of Knowledge}. 2. Auflage, Technics Publications, 2017.
+\bibitem{dehghani2022} Dehghani, Z.: \emph{Data Mesh: Delivering Data-Driven Value at Scale}. O'Reilly Media, 2022.
+\bibitem{euaiact2024} Europäische Union: Verordnung (EU) 2024/1689 des Europäischen Parlaments und des Rates vom 13. Juni 2024 zur Festlegung harmonisierter Vorschriften für künstliche Intelligenz (KI-Verordnung). \emph{Amtsblatt der Europäischen Union}, L, 12.7.2024. \url{http://data.europa.eu/eli/reg/2024/1689/oj}.
+\bibitem{gebru2021} Gebru, T., Morgenstern, J., Vecchione, B., Vaughan, J. W., Wallach, H., Daumé III, H., Crawford, K.: Datasheets for Datasets. \emph{Communications of the ACM} 64(12), 86--92, 2021.
+\bibitem{howard1966} Howard, R. A.: Information Value Theory. \emph{IEEE Transactions on Systems Science and Cybernetics} 2(1), 22--26, 1966.
+\bibitem{iso25012} ISO/IEC 25012:2008: \emph{Software engineering -- Software product Quality Requirements and Evaluation (SQuaRE) -- Data quality model}. International Organization for Standardization, 2008.
+\bibitem{iso8000} ISO 8000-61:2016: \emph{Data quality -- Part 61: Data quality management: Process reference model}. International Organization for Standardization, 2016.
+\bibitem{ji2023} Ji, Z., Lee, N., Frieske, R., Yu, T., Su, D., Xu, Y., Ishii, E., Bang, Y. J., Madotto, A., Fung, P.: Survey of Hallucination in Natural Language Generation. \emph{ACM Computing Surveys} 55(12), Article 248, 2023.
+\bibitem{khatri2010} Khatri, V., Brown, C. V.: Designing Data Governance. \emph{Communications of the ACM} 53(1), 148--152, 2010.
+\bibitem{lewis2020} Lewis, P., Perez, E., Piktus, A., Petroni, F., Karpukhin, V., Goyal, N., Küttler, H., Lewis, M., Yih, W., Rocktäschel, T., Riedel, S., Kiela, D.: Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks. In: \emph{Advances in Neural Information Processing Systems} 33, 9459--9474, 2020.
+\bibitem{mitchell2019} Mitchell, M., Wu, S., Zaldivar, A., Barnes, P., Vasserman, L., Hutchinson, B., Spitzer, E., Raji, I. D., Gebru, T.: Model Cards for Model Reporting. In: \emph{Proceedings of the Conference on Fairness, Accountability, and Transparency (FAT* '19)}, 220--229, ACM, 2019.
+\bibitem{moreau2011} Moreau, L., Clifford, B., Freire, J., Futrelle, J., Gil, Y., Groth, P., Kwasnikowska, N., Miles, S., Missier, P., Myers, J., Plale, B., Simmhan, Y., Stephan, E., Van den Bussche, J.: The Open Provenance Model core specification (v1.1). \emph{Future Generation Computer Systems} 27(6), 743--756, 2011.
+\bibitem{nist2023} National Institute of Standards and Technology: \emph{Artificial Intelligence Risk Management Framework (AI RMF 1.0)}. NIST AI 100-1, Januar 2023. \url{https://doi.org/10.6028/NIST.AI.100-1}.
+\bibitem{pipino2002} Pipino, L. L., Lee, Y. W., Wang, R. Y.: Data Quality Assessment. \emph{Communications of the ACM} 45(4), 211--218, 2002.
+\bibitem{polyzotis2018} Polyzotis, N., Roy, S., Whang, S. E., Zinkevich, M.: Data Lifecycle Challenges in Production Machine Learning: A Survey. \emph{ACM SIGMOD Record} 47(2), 17--28, 2018.
+\bibitem{prov2013} Lebo, T., Sahoo, S., McGuinness, D. (Hrsg.): \emph{PROV-O: The PROV Ontology}. W3C Recommendation, 30. April 2013. \url{https://www.w3.org/TR/prov-o/}.
+\bibitem{raiffa1961} Raiffa, H., Schlaifer, R.: \emph{Applied Statistical Decision Theory}. Division of Research, Graduate School of Business Administration, Harvard University, 1961.
+\bibitem{redman2016} Redman, T. C.: Bad Data Costs the U.S. \$3 Trillion Per Year. \emph{Harvard Business Review}, 22. September 2016.
+\bibitem{sambasivan2021} Sambasivan, N., Kapania, S., Highfill, H., Akrong, D., Paritosh, P., Aroyo, L. M.: "Everyone wants to do the model work, not the data work": Data Cascades in High-Stakes AI. In: \emph{Proceedings of the CHI Conference on Human Factors in Computing Systems}, Article 39, ACM, 2021.
+\bibitem{schelter2018} Schelter, S., Lange, D., Schmidt, P., Celikel, M., Biessmann, F., Grafberger, A.: Automating Large-Scale Data Quality Verification. \emph{Proceedings of the VLDB Endowment} 11(12), 1781--1794, 2018.
+\bibitem{sculley2015} Sculley, D., Holt, G., Golovin, D., Davydov, E., Phillips, T., Ebner, D., Chaudhary, V., Young, M., Crespo, J.-F., Dennison, D.: Hidden Technical Debt in Machine Learning Systems. In: \emph{Advances in Neural Information Processing Systems} 28, 2503--2511, 2015.
+\bibitem{wang1996} Wang, R. Y., Strong, D. M.: Beyond Accuracy: What Data Quality Means to Data Consumers. \emph{Journal of Management Information Systems} 12(4), 5--33, 1996.
+\bibitem{whang2023} Whang, S. E., Roh, Y., Song, H., Lee, J.-G.: Data collection and quality challenges in deep learning: a data-centric AI perspective. \emph{The VLDB Journal} 32(4), 791--813, 2023.
+\bibitem{wilkinson2016} Wilkinson, M. D., Dumontier, M., Aalbersberg, I. J., et al.: The FAIR Guiding Principles for scientific data management and stewardship. \emph{Scientific Data} 3, 160018, 2016.
+\bibitem{zheng2023} Zheng, L., Chiang, W.-L., Sheng, Y., Zhuang, S., Wu, Z., Zhuang, Y., Lin, Z., Li, Z., Li, D., Xing, E. P., Zhang, H., Gonzalez, J. E., Stoica, I.: Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena. In: \emph{Advances in Neural Information Processing Systems} 36 (Datasets and Benchmarks Track), 2023.
 \end{thebibliography}
 
 \end{document}
