@@ -2,8 +2,8 @@
 \documentclass[a4paper,12pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage[german]{babel}
-\usepackage{lmodern}
+\usepackage[ngerman]{babel}
+% \usepackage{lmodern}
 \usepackage{amsmath,amssymb,amsthm}
 \usepackage{geometry}
 \usepackage{graphicx}
@@ -12,7 +12,7 @@
 \usepackage{listings}
 \usepackage{xcolor}
 \usepackage{enumitem}
-\usepackage{microtype}
+% \usepackage{microtype}
 % Zeilenumbruch: verhindert Überläufe über den rechten Rand, wo die Silbentrennung nicht reicht.
 \setlength{\emergencystretch}{12em}
 \geometry{margin=2.5cm}
@@ -362,8 +362,9 @@ Ein einmal aufgebautes Data Product kann mehreren Anwendungen dienen: Controllin
 \end{quote}
 Ein eng umrissenes Data Product mit wenigen zentralen Treibern ist meist ein besserer Startpunkt als der Versuch, sofort ein unternehmensweit vollständiges Modell zu bauen.
 
-\section{Verantwortung und Freigabe}
-\label{sec:practice}
+\section{Freigabe, Vorgehen und Stoplerfallen}
+
+\subsection{Verantwortung und Freigabe}
 
 Für einen verantwortbaren Go-live braucht es drei explizit benannte Zuständigkeiten. Die Rollen können in kleineren Unternehmen von derselben Person wahrgenommen werden; die Entscheidungen und Verantwortungsbereiche müssen trotzdem klar dokumentiert sein.
 
@@ -385,8 +386,7 @@ Use-Case Owner & Genehmigt den KI-Einsatz, verantwortet Testfragen und Error Bud
 
 Ohne Data Owner können verschiedene Werkzeuge unter „Marge“ unterschiedliche Kennzahlen verstehen. Ohne Data Product Owner bleiben ausgefallene oder verspätete Datenlieferungen womöglich unbemerkt. Ohne Use-Case Owner sind weder Testumfang noch Autonomiegrenzen eindeutig. Wenn sich für eine dieser Fragen keine verantwortliche Person benennen lässt, ist die Freigabe des Anwendungsfalls zurückzustellen.
 
-\section{Schrittweises Vorgehen in der Praxis}
-\label{sec:implementation}
+\subsection{Vorgehen}
 
 Ein praktikabler Aufbau beginnt mit einer geschäftlich wichtigen, aber begrenzten Frage und erweitert Netz und Nutzung erst anhand von Beobachtungen:
 \begin{enumerate}
@@ -401,7 +401,7 @@ Ein praktikabler Aufbau beginnt mit einer geschäftlich wichtigen, aber begrenzt
 \item \textbf{Regelmäßig nachjustieren:} Datenqualität, Aktualisierung, Definitionen und Testfragen werden erneut geprüft. Änderungen am Data Product werden versioniert und angekündigt.
 \end{enumerate}
 
-\subsection{Mittelstand und Großunternehmen}
+\subsubsection{Mittelstand und Großunternehmen}
 Das wirtschaftliche Prinzip bleibt gleich; Umfang und Governance unterscheiden sich.
 \begin{table}[htbp]
 \centering
@@ -425,8 +425,7 @@ Im Mittelstand sollte der Einstieg von der wichtigsten Geschäftsfrage ausgehen,
 
 Großunternehmen schneiden Data Products sinnvollerweise nach Geschäftsdomänen und fachlicher Granularität statt nur nach Technologie. Definitionen zwischen Bereichen müssen früh harmonisiert oder mit eindeutigem Geltungsbereich dokumentiert werden. Wiederverwendung bestehender Produkte wird zum Standard; Rechte und Protokolle gelten auch für KI-Agenten. Ein höheres Autonomieniveau wird für jeden Anwendungsfall anhand seiner Stakes und Testergebnisse separat freigegeben.
 
-\section{Typische Stolperfallen}
-\label{sec:pitfalls}
+\subsection{Stolperfallen}
 
 \begin{table}[htbp]
 \centering
@@ -485,7 +484,7 @@ Sei $T=\{(q_j,y_j^*)\}_{j=1}^n$ eine Menge repräsentativer Testfragen mit fachl
 \]
 Dabei bezeichnet $\mathbf{1}[\cdot]$ die Indikatorfunktion. Für Ursachenanalysen sollte zusätzlich der erklärte Anteil am bekannten Gesamteffekt ausgewiesen werden. Beide Kennzahlen beantworten verschiedene Fragen: Besteht die Antwort einen Toleranztest, und deckt sie die wesentlichen Ursachen ab? Die Referenzen und Toleranzen verantwortet der Use-Case Owner gemeinsam mit den fachlich zuständigen Personen.
 
-\section{Operationalisierung: Freigabebericht und Regression}
+\section{Operationalisierung}
 \label{sec:operationalization}
 
 Die bisherigen Abschnitte beschreiben die Kriterien für ein ausreichendes Datennetz in Worten, Tabellen und Formeln. Dieser Abschnitt macht daraus ein deterministisches Prüfverfahren: Data Product und Anwendungsfall werden maschinenlesbar spezifiziert, messbare Nachweise werden aus den Daten \emph{abgeleitet} statt erklärt, und das Ergebnis ist die Menge der Freigabehindernisse. Ein späterer Bericht lässt sich mit einem früheren vergleichen. Das Verfahren ist im Verzeichnis \texttt{src/} umgesetzt (Module \texttt{spec}, \texttt{report}, \texttt{compare}, \texttt{cli}); formuliert werden hier nur Eigenschaften, die sich beweisen lassen. Alle Größen sind exakt rational ($\QQ$); es gibt weder Zufall noch Gleitkomma noch einen Zugriff auf die Systemuhr (der Stichtag ist Eingabe).
@@ -628,7 +627,9 @@ Für das Data Product „Sales Result 360“ der Fallstudie (Datei \texttt{examp
 
 Das Verfahren prüft nur, was in Definition~\ref{def:blockers} formalisiert ist. Es kontrolliert nicht, ob erklärte organisatorische Nachweise zutreffen, ob eine Quelle inhaltlich stimmt (Vollständigkeit der Provenance ist eine formale Eigenschaft), ob die gemeldeten Aktualisierungszeitpunkte korrekt sind und wie $\bar L$ geschätzt wurde. Die Stufen bleiben ein konzeptioneller Rahmen und keine Norm.
 
-\section{Checkliste: Ist diese KI-Antwort vertrauenswürdig?}
+\section{Checkliste, Diskussion, Schlussfolgerung}
+
+\subsection{Checkliste: Ist diese KI-Antwort vertrauenswürdig?}
 \label{sec:checklist}
 
 Vor der Verwendung einer KI-Antwort sollten mindestens die folgenden Punkte geprüft und für den konkreten Einsatzfall beantwortet werden:
@@ -644,14 +645,14 @@ Vor der Verwendung einer KI-Antwort sollten mindestens die folgenden Punkte gepr
 \end{enumerate}
 Ein fehlender Nachweis ist selbst ein relevantes Ergebnis: Er bedeutet nicht automatisch, dass die Antwort falsch ist, aber dass sie nicht ohne weitere Prüfung für eine höher riskante Verwendung freigegeben werden sollte.
 
-\section{Diskussion, Grenzen und Ausblick}
+\subsection{Diskussion, Grenzen und Ausblick}
 Die formalen Modelle vereinfachen reale Unternehmensprozesse bewusst: Einflussbeziehungen sind nicht immer linear, Referenzwerte können selbst unsicher sein und Ursachen interagieren. Auch die im Fallbeispiel genannten Beträge sind eine illustrative Webinar-Fallstudie und keine unabhängig erhobene Unternehmensanalyse. Die angegebenen Reife- und Fehlermaße müssen daher als fallbezogene Entscheidungshilfen verstanden werden.
 
 Eine weitere Grenze ist die Auswahl der Testfragen. Ein hoher Messwert für leicht beantwortbare oder häufige Fragen sagt wenig über seltene, aber folgenreiche Ausnahmen aus. Testsets sollten deshalb nach möglichen Auswirkungen geschichtet und auch nach Änderungen an Datenquellen, Definitionen, Modellen oder Berechtigungen erneut ausgeführt werden. Ebenso ist eine Abweichung nicht automatisch ein Beleg gegen das Datennetz: Sie kann auf einen Fehler in der internen Analyse, eine andere zulässige Definition oder einen inzwischen veränderten Datenstand hinweisen.
 
 Die wirtschaftliche Logik bleibt dennoch belastbar: Datenverbesserungen sollten dort priorisiert werden, wo ihr erwarteter zusätzlicher Nutzen die Integrations- und Betriebskosten rechtfertigt. In der Praxis sind dafür kontrollierte Experimente, historische Was-wäre-wenn-Analysen und eine nachvollziehbare Messung der Folgen nötig. Die Schätzung dieses Nutzens in realen Geschäftsfällen bleibt eine zentrale offene Aufgabe.
 
-\section{Schlussfolgerung}
+\subsection{Schlussfolgerung}
 Die Frage „Wann ist das Datennetz gut genug für KI?“ hat keine allgemeingültige, absolute Schwelle. Gut genug ist es für einen bestimmten Anwendungsfall, wenn relevante Einflussgrößen verknüpft und definiert sind, Qualität und Aktualität bekannt sind, Antworten nachvollziehbare Provenance tragen und der verbleibende Fehler im Verhältnis zu den Stakes vertretbar ist.
 
 Aus der Fallstudie und dem formalen Modell folgen sechs praktische Kernaussagen:
@@ -670,7 +671,6 @@ Aus der Fallstudie und dem formalen Modell folgen sechs praktische Kernaussagen:
 
 \section*{Danksagung}
 Die Arbeit basiert auf den Ideen und Folien von ai-data-network-economic-approach-en.md sowie auf den wissenschaftlichen Vorarbeiten des Autors zur wirtschaftlichen Bewertung eines SAT-Solvers und zu Wirtschaftssystemen unter Unsicherheit \cite{sat2026,uncertainty2026}.
-
 \appendix
 \section{Glossar}
 \begin{description}[style=nextline]
@@ -706,7 +706,7 @@ Dies kann numerisch über Simulation oder historische "what-if"-Analysen geschä
 \bibliographystyle{plain}
 \begin{thebibliography}{9}
 \bibitem{webinar2026} Michael Sullmann (BE-terna), Webinar "Data Product and AI in Controlling", Okt 2026.
-\bibitem{sat2026} Stephan Epp. \emph{Wirtschaftliche Konsequenzen eines effizienten SAT-Solvers}. 12. Oktober 2026. \url{https://github.com/naphz86/subgraph-sat-solver-econ}.
+\bibitem{sat2026} Stephan Epp. \emph{Wirtschaftliche Konsequenzen eines effizienten SAT-Solvers}. 12. Oktober 2026. \url{https://github.com/naphets86/subgraph-sat-solver-econ}.
 \bibitem{uncertainty2026} Stephan Epp. \emph{Wirtschaftssysteme unter Unsicherheit}. 3. September 2026. \url{https://github.com/naphets86/odd/tree/main/science/uncrtecos}.
 \end{thebibliography}
 
