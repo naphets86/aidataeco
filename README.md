@@ -18,18 +18,17 @@ Die Arbeit verbindet ein formales Modell von Datennetzen und Data Products mit e
 - [Überblick](#überblick)
 - [Kernaussagen](#kernaussagen)
 - [Inhalt der Arbeit](#inhalt-der-arbeit)
-- [Fallstudie: sinkende Marge](#fallstudie-sinkende-marge)
+- [Fallstudie: Sinkende Marge](#fallstudie-sinkende-marge)
 - [Formales Modell und wirtschaftliche Perspektive](#formales-modell-und-wirtschaftliche-perspektive)
 - [Vertrauensstufen](#vertrauensstufen)
 - [Data Products und Verantwortlichkeiten](#data-products-und-verantwortlichkeiten)
-- [Projektstruktur](#projektstruktur)
 - [Voraussetzungen](#voraussetzungen)
 - [PDF erstellen](#pdf-erstellen)
 - [Prüfen und weiterentwickeln](#prüfen-und-weiterentwickeln)
 - [Stand und Grenzen](#stand-und-grenzen)
 - [Quellen und weiterführende Arbeiten](#quellen-und-weiterführende-arbeiten)
 - [Software und Tests](#software-und-tests)
-- [Lizenz und Nutzung](#lizenz-und-nutzung)
+- [Erwerb](#erwerb)
 
 ## Überblick
 
@@ -74,7 +73,7 @@ Die LaTeX-Arbeit entwickelt das Konzept in folgender Reihenfolge:
 
 Das vollständige Inhaltsverzeichnis steht auch am Anfang des [PDFs](science/aidataeco.pdf).
 
-## Fallstudie: sinkende Marge
+## Fallstudie: Sinkende Marge
 
 Die illustrative Webinar-Fallstudie betrachtet einen Maschinenbauzulieferer. Der Umsatz steigt von 10,0 Mio. € auf 11,0 Mio. €, während die Deckungsbeitragsmarge II von 28 % auf 24 % fällt. Die daraus abgeleitete DB-II-Differenz beträgt 440 T€.
 
@@ -157,38 +156,6 @@ Eine festgelegte semantische Regel ersetzt nicht die technische Verknüpfung zwi
 | **Use-Case Owner** | Genehmigt die Anwendung, verantwortet Testfragen und Error Budget und legt fest, wann ein Mensch entscheidet. |
 
 In einem kleineren Unternehmen kann eine Person mehrere Rollen ausüben. Die Entscheidungen und Zuständigkeiten sollten trotzdem explizit dokumentiert sein. Wenn nicht klar ist, wer Definition, Lieferung oder Freigabe verantwortet, fehlt eine wichtige Grundlage für den Go-live.
-
-## Projektstruktur
-
-```text
-aidataeco/
-├── README.md
-├── LICENSE
-├── pyproject.toml
-├── src/
-├── tests/
-├── examples/
-└── science/
-    ├── aidataeco.tex
-    ├── aidataeco.pdf
-    └── aidataeco.synctex.gz
-```
-
-Im Arbeitsverzeichnis können zusätzlich lokale LaTeX-Hilfsdateien wie `.aux`, `.log`, `.toc`, `.out`, `.fls` und `.fdb_latexmk` entstehen. Sie sind Build-Artefakte und keine eigenständigen Quellen der Arbeit.
-
-| Datei | Zweck |
-|---|---|
-| [`science/aidataeco.tex`](science/aidataeco.tex) | Maßgebliche editierbare Quelle der deutschen Arbeit. |
-| [`science/aidataeco.pdf`](science/aidataeco.pdf) | Daraus erzeugte Lesefassung; nach Änderungen an der TeX-Quelle neu bauen. |
-| [`science/aidataeco.synctex.gz`](science/aidataeco.synctex.gz) | SyncTeX-Zuordnung zwischen PDF und TeX-Quelle für unterstützte Editoren. |
-| [`src/`](src) | Python-Bausteine zur Arbeit (siehe [Software und Tests](#software-und-tests)). |
-| [`tests/`](tests) | Automatisierte Tests mit `pytest`. |
-| [`examples/`](examples) | Beispiel-Spezifikation und Beispiel-Antworten zur Fallstudie für das Prüfwerkzeug. |
-| [`pyproject.toml`](pyproject.toml) | Paket-, Abhängigkeits-, pytest- und Coverage-Konfiguration. |
-| [`LICENSE`](LICENSE) | Nutzungsbedingungen für die Inhalte dieses Repositories. |
-| [`.gitignore`](.gitignore) | Ignorierte lokale Umgebungs- und Build-Dateien. |
-
-Die englische Konzeptdatei, auf der die inhaltliche Ausarbeitung beruht, ist **nicht** Teil dieses Repositorys. Die Arbeit und dieses Repository enthalten daher keine automatisch synchronisierte Übersetzung.
 
 ## Voraussetzungen
 
@@ -340,8 +307,12 @@ pytest
 
 `pytest` führt alle Tests aus und erzeugt den Coverage-Bericht (Zeilen und Zweige) als HTML unter `doc/coverage/index.html`. Der Bericht ist ein Build-Artefakt und wird bei Bedarf neu erzeugt.
 
-## Lizenz und Nutzung
+## Erwerb
 
-Die Datei [`LICENSE`](LICENSE) enthält spezifische, restriktive Nutzungsbedingungen und ist **keine übliche Open-Source-Lizenz**. Vor Kopieren, Weiterverbreiten, Verändern oder einer kommerziellen Nutzung sind die Lizenzbedingungen zu lesen und zu klären. Die hier beschriebene Lizenz darf nicht als pauschale Erlaubnis zur Nutzung wissenschaftlicher Inhalte oder zur Generierung daraus abgeleiteter Software ausgelegt werden.
+Der Preis für diese Software beträgt 27.145.000,00 EUR.
 
-Für Fragen zur wissenschaftlichen Einordnung oder zu gewünschten zukünftigen Softwarebestandteilen ist eine konkrete Beschreibung des Anwendungsfalls, der Eingaben, der erwarteten Ausgaben und des gewünschten Prüfverhaltens die beste Grundlage für die weitere Umsetzung.
+### Zahlungsinformationen
+
+Name: Stephan Epp  
+IBAN: DE24 5003 1900 0012 5603 20  
+BIC: BBVADEFFXXX
