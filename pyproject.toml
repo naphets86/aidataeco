@@ -29,7 +29,7 @@ dev = [
     "pytest-cov",
     "coverage",
     "pyyaml",
-    "httpx",  # vom FastAPI-TestClient der API-Tests benötigt
+    "httpx2",  # vom FastAPI-TestClient der API-Tests benötigt
 ]
 
 [project.scripts]
