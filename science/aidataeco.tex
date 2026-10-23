@@ -43,6 +43,7 @@
 \newtheorem{korollar}[definition]{Korollar}
 
 % Notation
+\lstset{basicstyle=\ttfamily\footnotesize,breaklines=true,frame=single,backgroundcolor=\color{lightgray},columns=fullflexible,keepspaces=true,inputencoding=utf8,extendedchars=true,literate={ä}{{\"a}}1 {ö}{{\"o}}1 {ü}{{\"u}}1 {Ä}{{\"A}}1 {Ö}{{\"O}}1 {Ü}{{\"U}}1 {ß}{{\ss}}1}
 \newcommand{\bits}{\{0,1\}}
 \newcommand{\NN}{\mathbb{N}}
 \newcommand{\RR}{\mathbb{R}}
@@ -58,6 +59,7 @@
 
 \begin{abstract}
 Diese Arbeit untersucht, wann das Datennetz eines Unternehmens für eine konkrete KI-Anwendung gut genug ist. Ausgangspunkt ist nicht die Forderung nach fehlerfreien Daten, sondern eine ökonomische Abwägung: Ist der verbleibende Fehler im Verhältnis zu den Folgen der unterstützten Entscheidung vertretbar? Eine Fallstudie zur sinkenden Deckungsbeitragsmarge zeigt, wie eine plausibel klingende, aber unvollständige KI-Erklärung zu einer falschen Maßnahme führen kann, wenn Logistikdaten und Produktmix im Datennetz fehlen. Darauf aufbauend verbindet die Arbeit ein formales Modell von Datennetz, Data Product, Provenance und Error Budget mit einem praktischen Vorgehen. Sie beschreibt KI als Hinweis- und Prüfwerkzeug, vier stufenweise Vertrauensniveaus, ein Data Product als wiederverwendbare Grundlage, drei benannte Verantwortlichkeiten und messbare Kriterien für Fortschritt. Die zentrale These lautet: Abweichungen zwischen KI-Antwort und Unternehmensanalyse sind nicht nur ein Risiko, sondern können Datenlücken und zugleich mögliche Lücken in der eigenen Analyse sichtbar machen.
+Um das Prüfverfahren in Unternehmensabläufe einzubinden, wird es zusätzlich als zustandslose JSON-Schnittstelle (FastAPI) bereitgestellt. Sie bildet 28 Operationen ab, liefert für gleiche Eingaben identische Ergebnisse wie die Bibliothek, behandelt Unbekanntes an der Schnittstelle nie als Erfolg, begrenzt Eingabegrößen gegen Überlastung und ist mit 291 Tests vollständig abgedeckt. Der Ausblick skizziert fünf Richtungen: empirische Validierung, Modellerweiterung, Ausbau der Schnittstelle, organisatorische Einbettung und die Anbindung von KI-Agenten.
 \end{abstract}
 
 \tableofcontents
@@ -66,7 +68,7 @@ Diese Arbeit untersucht, wann das Datennetz eines Unternehmens für eine konkret
 \section{Einleitung}
 Die drei leitenden Gedanken dieser Arbeit sind eng miteinander verbunden. Erstens hängt Vertrauen in eine Antwort nicht davon ab, ob sie vollkommen fehlerfrei ist, sondern davon, ob ein möglicher Fehler für den konkreten Verwendungszweck klein genug ist. Zweitens bezeichnet das Datennetz mehr als die Summe gespeicherter Daten: Entscheidend sind auch Verknüpfungen, Zugriffswege, gemeinsame Definitionen und Aktualität. Dasselbe KI-Modell kann deshalb auf einem gut verbundenen Netz nützliche und auf einem fragmentierten Netz irreführende Antworten geben. Drittens können KI-Antworten bereits vor vollständiger Datenreife als Hinweise und Gegenprüfung der eigenen wirtschaftlichen Analyse nützlich sein.
 
-Diese Perspektive vermeidet zwei Extreme: KI-Antworten weder blind als Wahrheit zu übernehmen noch den Einsatz bis zu einer unerreichbaren Perfektion der Daten aufzuschieben. Stattdessen werden Nutzung und Autonomie nach den möglichen Folgen eines Fehlers gestuft. Die Arbeit führt zunächst in die Lücke zwischen KI-Ambition und Datenreife ein und erläutert eine Fallstudie zur sinkenden Marge. Danach folgen ein formales Modell, eine ökonomische Bedingung für ausreichende Qualität und ein Lernkreislauf für Abweichungen. Abschließend werden Data Products, Verantwortlichkeiten, Umsetzungsschritte, Unternehmensgrößen, typische Stolperfallen, Messgrößen, ein deterministisches Prüfverfahren mit Freigabebericht und Regressionsvergleich sowie eine Go-live-Checkliste behandelt.
+Diese Perspektive vermeidet zwei Extreme: KI-Antworten weder blind als Wahrheit zu übernehmen noch den Einsatz bis zu einer unerreichbaren Perfektion der Daten aufzuschieben. Stattdessen werden Nutzung und Autonomie nach den möglichen Folgen eines Fehlers gestuft. Die Arbeit führt zunächst in die Lücke zwischen KI-Ambition und Datenreife ein und erläutert eine Fallstudie zur sinkenden Marge. Danach folgen ein formales Modell, eine ökonomische Bedingung für ausreichende Qualität und ein Lernkreislauf für Abweichungen. Abschließend werden Data Products, Verantwortlichkeiten, Umsetzungsschritte, Unternehmensgrößen, typische Stolperfallen, Messgrößen, ein deterministisches Prüfverfahren mit Freigabebericht und Regressionsvergleich sowie eine Go-live-Checkliste behandelt. Ein eigenes Kapitel beschreibt die Bereitstellung des Prüfverfahrens als JSON-Schnittstelle (Abschnitt~\ref{sec:api}); der Ausblick (Abschnitt~\ref{sec:outlook}) ordnet offene Aufgaben und Erweiterungen.
 
 \section{Ausgangslage: KI-Ambition und Datenreife}
 \label{sec:starting-point}
@@ -705,7 +707,267 @@ Der Vergleich ist exakt und kennt keine Toleranz; Messrauschen (etwa bei kleinen
 
 Für das Data Product „Sales Result 360“ der Fallstudie (Datei \texttt{examples/\allowbreak sales\_\allowbreak result\_\allowbreak 360.yaml}, illustrativ) liefert das Verfahren auf Stufe~3 mit $\bar L=380$ und $\varepsilon W=22$ sieben Freigabehindernisse: vier fehlende Nachweise (Kennzahlen nicht verknüpft, weil die Verbindung zwischen Auftrag und Fracht fehlt; Provenance unvollständig, weil die Antwort zum Produktmix fehlt; Qualität des Knotens ohne Angabe nicht messbar; Error Budget überschritten), zwei nicht aktuelle Knoten und eine Bestehensquote $p=1/6<\theta=3/4$. Das Ergebnis deckt sich mit der Aussage der Fallstudie, dass das Netz für diese Frage nicht ausreicht.
 
-Das Verfahren prüft nur, was in Definition~\ref{def:blockers} formalisiert ist. Es kontrolliert nicht, ob erklärte organisatorische Nachweise zutreffen, ob eine Quelle inhaltlich stimmt (Vollständigkeit der Provenance ist eine formale Eigenschaft), ob die gemeldeten Aktualisierungszeitpunkte korrekt sind und wie $\bar L$ geschätzt wurde. Die Stufen bleiben ein konzeptioneller Rahmen und keine Norm.
+Das Verfahren prüft nur, was in Definition~\ref{def:blockers} formalisiert ist. Es kontrolliert nicht, ob erklärte organisatorische Nachweise zutreffen, ob eine Quelle inhaltlich stimmt (Vollständigkeit der Provenance ist eine formale Eigenschaft), ob die gemeldeten Aktualisierungszeitpunkte korrekt sind und wie $\bar L$ geschätzt wurde. Die Stufen bleiben ein konzeptioneller Rahmen und keine Norm. Wie das Verfahren als Dienst bereitgestellt und in Abläufe eingebunden werden kann, behandelt Abschnitt~\ref{sec:api}.
+
+\section{Bereitstellung als JSON-API}
+\label{sec:api}
+
+Die bisherigen Abschnitte haben das Prüfverfahren als Bibliothek und als Kommandozeile beschrieben (Abschnitt~\ref{sec:operationalization}). Beides setzt voraus, dass der Anwender Python-Code ausführt oder eine Shell bedient. Datennetze und KI-Anwendungen leben jedoch in Umgebungen, in denen andere Systeme die Prüfung anstoßen sollen: eine Pipeline, die nach jeder Änderung am Data Product einen Freigabebericht erzeugt, ein Controlling-Werkzeug, das den erklärten Anteil einer Antwort anzeigt, oder ein KI-Agent, der vor einer Handlung die Freigabehindernisse seiner Stufe abfragt. Dieser Abschnitt beschreibt die Erweiterung, die das Prüfverfahren als zustandslose HTTP-Schnittstelle bereitstellt. Sie ist mit dem Web-Framework FastAPI umgesetzt und liegt im Verzeichnis \texttt{web/} neben \texttt{src/}. Die Bausteine aus \texttt{src/} werden dabei nicht verändert; die Schnittstelle ruft ausschließlich deren öffentliche Funktionen auf.
+
+Der Abschnitt ist wie folgt aufgebaut. Zunächst werden die Entwurfsziele und die Architektur dargestellt, dann die Endpunkte und die Datenverträge. Danach werden die formalen Eigenschaften der Schnittstelle herausgearbeitet, die sich aus den Sätzen des Abschnitts~\ref{sec:operationalization} ergeben, und das Fehlermodell sowie die Maßnahmen zur Robustheit erläutert. Ein Beispiel führt die Fallstudie über die Schnittstelle durch. Abschließend werden Qualitätssicherung, Einsatzszenarien und Grenzen behandelt.
+
+\subsection{Entwurfsziele}
+Die Schnittstelle folgt den Leitplanken der Arbeit und übersetzt sie in Anforderungen an einen Netzdienst. Fünf Ziele bestimmen den Entwurf.
+
+\paragraph{Keine zusätzliche Fachlogik.}
+Jede Rechnung geschieht in \texttt{src/}. Die Schnittstelle liest Eingaben, ruft eine Bibliotheksfunktion auf und serialisiert das Ergebnis. Dadurch kann es keine zweite, abweichende Implementierung der Freigabelogik geben, und Änderungen an den Definitionen der Arbeit wirken automatisch auch auf die Schnittstelle. Das ist zugleich das Gegenmittel gegen die Stolperfalle, dass verschiedene Werkzeuge dieselbe Kennzahl unterschiedlich berechnen (Abschnitt~\ref{sec:pitfalls}, Nr.~4).
+
+\paragraph{Zustandslosigkeit und Reproduzierbarkeit.}
+Jede Anfrage enthält ihre Eingaben vollständig, auch den Stichtag. Der Server hält keine Sitzung, speichert keine Spezifikation und keine Antwort und liest nicht die Systemuhr. Damit überträgt sich der Reproduzierbarkeitssatz der Bibliothek (Satz~\ref{thm:repro}) auf die Schnittstelle.
+
+\paragraph{Exaktheit.}
+Alle Rechnungen verwenden exakte Brüche. Zahlen kommen als JSON-Zahl oder als Text (\texttt{"3/20"}, \texttt{"0.15"}) und gehen als Bruch-Text hinaus. Es gibt keine Gleitkommarundung, die einen Schwellenvergleich wie $\bar L\le\varepsilon W$ am Rand verfälschen könnte.
+
+\paragraph{Strenge Eingabe.}
+Unbekannte Felder, falsche Typen und ungültige Zahlen werden abgewiesen, nichts wird stillschweigend ersetzt. Das entspricht dem Grundsatz, dass ein fehlender oder unklarer Nachweis nie als Erfolg zählt.
+
+\paragraph{Dokumentierte, prüfbare Verträge.}
+Jeder Endpunkt ist in einem maschinenlesbaren Schema (OpenAPI) beschrieben, mit Beispielen und Fehlerantworten. Das Schema ist selbst Gegenstand von Tests, damit Dokumentation und Verhalten nicht auseinanderlaufen.
+
+\subsection{Architektur}
+Die Schnittstelle besteht aus drei Modulen in einem eigenen Paket \texttt{web}, die auf das Paket \texttt{aidataeco} (das Verzeichnis \texttt{src/}) aufsetzen. Tabelle~\ref{tab:api-layers} zeigt die Schichten.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Schichten der JSON-API}
+\label{tab:api-layers}
+\begin{tabular}{P{0.24\linewidth}P{0.66\linewidth}}
+\toprule
+\textbf{Schicht} & \textbf{Aufgabe} \\
+\midrule
+\texttt{src/} (Paket \texttt{aidataeco}) & Fachlogik: Datennetz, Data Product, Error Budget, Diagnose, Governance, Auswertung, Freigabebericht, Vergleich. Unverändert. \\
+\texttt{web/convert.py} & Eingabeprüfung und Umwandlung zwischen JSON und den exakten Bausteinen: Zahlen als Brüche, Stufen aus Nummer oder Name, Schutz vor übergroßen Exponenten. \\
+\texttt{web/schemas.py} & Request- und Response-Modelle mit Feldbeschreibungen und Beispielen; sie erzeugen das OpenAPI-Schema und validieren die Typen. \\
+\texttt{web/api.py} & FastAPI-Anwendung: Endpunkte, Abbildung von Fehlern auf HTTP-Statuscodes, Größenbegrenzung, Startfunktion. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Eine Anfrage durchläuft vier Stufen. Erstens validiert FastAPI mit den Modellen aus \texttt{schemas.py} die Typen des Requests. Zweitens prüft \texttt{convert.py} die freien Dokumente (Spezifikation, Antworten, Berichte) auf übergroße Zahlentexte. Drittens liest die Bibliothek die Dokumente streng und führt die Rechnung aus. Viertens wird das Ergebnis in das Antwortmodell serialisiert, das FastAPI erneut validiert. Fehler in jeder dieser Stufen werden in einheitliche Fehlerantworten übersetzt (Abschnitt~\ref{sec:api-errors}).
+
+Die Bibliothek wird unter ihrem Paketnamen \texttt{aidataeco} importiert, so als wäre sie installiert. Das Projekt weist \texttt{src} dazu in der Paketkonfiguration dem Namen \texttt{aidataeco} zu, weil \texttt{src} als Paketname mehrdeutig ist. Die Konfiguration nimmt außerdem das Paket \texttt{web}, die Abhängigkeiten \texttt{fastapi} und \texttt{uvicorn} sowie ein Konsolenskript zum Start des Servers auf.
+
+\subsection{Ressourcen und Endpunkte}
+Die Schnittstelle stellt 28 Operationen unter dem Präfix \texttt{/api/v1} bereit. Sie sind nach den Abschnitten der Arbeit gruppiert, auf deren Definitionen sie beruhen. Tabelle~\ref{tab:api-endpoints} gibt den Überblick.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Endpunkte der JSON-API und ihr Bezug zur Arbeit}
+\label{tab:api-endpoints}
+\begin{tabular}{P{0.17\linewidth}P{0.42\linewidth}P{0.31\linewidth}}
+\toprule
+\textbf{Gruppe} & \textbf{Endpunkte (unter \texttt{/api/v1})} & \textbf{Bezug zur Arbeit} \\
+\midrule
+\texttt{meta} & \texttt{GET /health}, \texttt{GET /options} & Stufen, Nachweise, Grenzen \\
+\texttt{specs} & \texttt{POST /specs/validate} & Spezifikation $\Sigma$ (Def.~\ref{def:spec}) \\
+\texttt{reports} & \texttt{POST /reports}, \texttt{/reports/markdown}, \texttt{/reports/cases}, \texttt{/reports/compare}, \texttt{/reports/compare/markdown} & Evidenzvektor, Freigabehindernisse, Regressionsfreiheit (Def.~\ref{def:evidence}, \ref{def:blockers}, \ref{def:regression}) \\
+\texttt{evaluation} & \texttt{POST /evaluation/pass-rate}, \texttt{/explained-share}, \texttt{/completeness}, \texttt{/freshness} & Kennzahlen, Abschnitt~\ref{sec:metrics} \\
+\texttt{error-budget} & \texttt{POST /error-budget/check}, \texttt{/linear-loss}, \texttt{/decomposition}, \texttt{/missing-bias}, \texttt{/lipschitz-bound} & Gut-genug-Bedingung, Fehlerzerlegung, Abschnitt~\ref{sec:error} \\
+\texttt{diagnosis} & \texttt{POST /diagnosis/posterior}, \texttt{/bayes-update}, \texttt{/voi}, \texttt{/deviations}; \texttt{GET /diagnosis/causes} & Bayes-Indikator, Lern-Loop, VOI, Abschnitt~\ref{sec:opportunity} \\
+\texttt{governance} & \texttt{GET /governance/levels}; \texttt{POST /governance/blockers} & Vertrauensstufen, Tabelle~\ref{tab:reliability-levels} \\
+\texttt{integration} & \texttt{POST /integration/select} & Datenquellen unter Budget (Erweiterung der VOI-Bedingung) \\
+\texttt{experiments} & \texttt{POST /experiments/fingerprint}; \texttt{GET /experiments/versions} & Reproduzierbares Protokoll \\
+\texttt{case-study} & \texttt{GET /case-study} & Fallstudie, Abschnitt~\ref{sec:case-study} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Der Kern ist die Gruppe \texttt{reports}. Der Endpunkt \texttt{POST /reports} nimmt Spezifikation, Antworten, Stichtag, erwarteten Verlust und optional die Versionen entgegen und liefert den Freigabebericht im selben JSON-Format wie die Kommandozeile. \texttt{/reports/markdown} liefert dieselbe Auswertung als lesbaren Text. \texttt{/reports/cases} wertet jede Referenzfrage einzeln aus, also Antwort, Bestehen innerhalb der Toleranz und Vollständigkeit der Provenance, und eignet sich als Diagnosehilfe, bevor ein Bericht gebildet wird. \texttt{/reports/compare} vergleicht zwei gespeicherte Berichte und meldet, ob eine Regression im Sinn von Definition~\ref{def:regression} vorliegt.
+
+Die übrigen Gruppen machen einzelne Rechenschritte der Arbeit separat zugänglich. Das ist aus zwei Gründen sinnvoll. Erstens verwenden Teams häufig nur einen Teil des Verfahrens, etwa die Gut-genug-Bedingung oder die gewichtete Bestehensquote, und wollen dafür keine vollständige Spezifikation aufbauen. Zweitens lassen sich die Formeln der Arbeit so nachrechnen: Wer den erklärten Anteil der Fallstudie prüfen will, sendet die drei Ursachen an \texttt{/evaluation/explained-share} und erhält $3/22\approx 13{,}6\,\%$.
+
+Zwei Endpunkte verdienen eine Bemerkung. \texttt{GET /governance/levels} leitet die Anforderungen jeder Stufe nicht aus einer zweiten Tabelle ab, sondern ruft die Freigabelogik mit vollständig besetzten Rollen und ohne jeden Nachweis auf; die Hindernisse sind dann genau die Anforderungen der Stufe. Eine Änderung der Anforderungen in der Bibliothek erscheint damit ohne weiteren Eingriff in der Schnittstelle. \texttt{POST /integration/select} löst das Auswahlproblem für Datenquellen mit dem Entscheider des Referenzprojekts; wegen des Rechenaufwands ist die Optionszahl begrenzt (Abschnitt~\ref{sec:api-robust}).
+
+\subsection{Datenverträge}
+\paragraph{Zahlen.}
+Eine Zahl ist eine JSON-Zahl oder ein Text in Dezimal- oder Bruchschreibweise. Sie wird in einen exakten Bruch $q\in\QQ$ umgewandelt; Gleitkommawerte werden über ihre Dezimaldarstellung gelesen (\texttt{0.1} wird zu $1/10$). Ergebnisse stehen als Text, ganze Zahlen ohne Nenner (\texttt{"3"}), sonst als Bruch (\texttt{"3/22"}). Wahrheitswerte sind keine Zahlen. Diese Konvention stimmt mit der Darstellung der Berichte in der Kommandozeile überein, sodass ein gespeicherter Bericht unverändert an \texttt{/reports/compare} übergeben werden kann.
+
+\paragraph{Datum und Stichtag.}
+Daten sind ISO-Texte der Form \texttt{JJJJ-MM-TT}. Der Stichtag $\tau$ ist ein Pflichtfeld von \texttt{POST /reports}; es gibt bewusst keinen Standardwert, weil ein Standardwert die Systemuhr einführen würde.
+
+\paragraph{Dokumente.}
+Spezifikation, Antworten und Berichte sind frei strukturierte JSON-Objekte mit denselben Schlüsseln wie die YAML- oder JSON-Dateien der Kommandozeile. Ihre Typen sind im Schema nur als Objekt beschrieben, ihr Inhalt wird von der Bibliothek geprüft. Das vermeidet, die Struktur zweimal zu pflegen, und garantiert, dass die Schnittstelle genau die Dokumente akzeptiert, die auch die Kommandozeile akzeptiert. Die Beispiele im OpenAPI-Schema zeigen die Struktur.
+
+\paragraph{Stufen.}
+Eine Stufe wird als Nummer (1 bis 4) oder als Name (\texttt{HINT}, \texttt{CROSS\_CHECK}, \texttt{DECISION\_PREPARATION}, \texttt{AUTOMATED\_ACTION}) angegeben. \texttt{GET /options} liefert beide Darstellungen sowie die Menge der messbaren Nachweise, die in einer Spezifikation nicht erklärt werden dürfen, und der organisatorischen Nachweise, die erklärt werden dürfen.
+
+\subsection{Formale Eigenschaften}
+\label{sec:api-formal}
+Die Schnittstelle fügt dem Verfahren keine neue Mathematik hinzu, aber sie erlaubt es, Eigenschaften der Bibliothek auf die Netzschicht zu übertragen. Sei $\mathrm{Anf}$ die Menge der wohlgeformten Anfragen eines Endpunkts $e$ und $\mathrm{Ant}_e$ die Menge seiner Erfolgsantworten. Ein Handler ist eine Abbildung
+\[
+H_e:\ \mathrm{Anf}\ \to\ \mathrm{Ant}_e\ \cup\ \mathrm{Fehler}.
+\]
+
+\begin{satz}[Treue des Berichts-Endpunkts]\label{thm:api-fidelity}
+Für jede Anfrage $r=(\Sigma,a,\tau,\bar L,v)$, für die $H_{\mathrm{reports}}$ eine Erfolgsantwort liefert, ist diese Antwort gleich der JSON-Darstellung des Freigabeberichts, den die Bibliothek zu denselben Eingaben bildet. Insbesondere stimmen Freigabehindernisse $B(s)$, Evidenzvektor $e$ und Fingerprint überein, und die Markdown-Antwort ist der Markdown-Text desselben Berichts.
+\end{satz}
+\begin{proof}
+Der Handler liest $\Sigma$ und $a$ mit den Lesefunktionen der Bibliothek, wandelt $\tau$ und $\bar L$ in ein Datum beziehungsweise einen exakten Bruch um und ruft die Berichtsfunktion auf. Das Ergebnis wird mit der Serialisierungsfunktion der Bibliothek ausgegeben; die Antwortmodelle ändern keine Werte, sondern beschreiben und validieren sie. Der Kommandozeilenaufruf verwendet dieselben Funktionen. Damit sind beide Ausgaben für gleiche Eingaben gleich.
+\end{proof}
+
+Der Satz ist eine Eigenschaft der Implementierung und kein Satz über Datennetze; er ist deshalb nicht bewiesen im Sinn der Formeln, sondern durch Konstruktion begründet und durch einen Test abgesichert, der Antwort und Bibliotheksergebnis vergleicht (Abschnitt~\ref{sec:api-tests}).
+
+\begin{satz}[Zustandslosigkeit und Reproduzierbarkeit der Antwort]\label{thm:api-stateless}
+Zwei Anfragen mit gleichem Inhalt, einschließlich der angegebenen Versionen $v$, liefern dieselbe Antwort, unabhängig von der Reihenfolge und der Zahl früherer Anfragen. Sind die Versionen nicht angegeben, gilt dies, solange sich die installierten Versionen von Python und Abhängigkeiten auf dem Server nicht ändern.
+\end{satz}
+\begin{proof}
+Jeder Handler ist eine Funktion seiner Anfrage: Er liest keine Datei, speichert nichts und verwendet weder Zufall noch Systemzeit; der Stichtag ist Eingabe. Die Bibliotheksfunktionen sind nach Satz~\ref{thm:repro} Funktionen ihrer Eingaben. Ohne Angabe von $v$ wird $v$ durch die installierten Versionen ersetzt, die damit zur Eingabe werden.
+\end{proof}
+
+Aus Satz~\ref{thm:api-stateless} folgt, dass sich ein Bericht nachträglich bestätigen lässt: Wer die Anfrage aufbewahrt, kann an beliebiger Stelle denselben Bericht und denselben Fingerprint erzeugen. Für diese Eigenschaft sollten Clients die Versionen stets angeben.
+
+\begin{satz}[Unbekanntes zählt auch an der Schnittstelle nie als Erfolg]\label{thm:api-conservative}
+Ein JSON-Wert \texttt{null} oder ein fehlendes optionales Feld wird als $\bot$ gelesen. Eine nicht angegebene Antwort $\hat y_j$ gilt als unbeantwortet, ein nicht angegebener erwarteter Verlust $\bar L$ als nicht belegt, eine nicht angegebene Qualität $q_v$ oder Aktualisierung $t_v$ als unbekannt. Für die Eingaben, die sich so aus einer Anfrage durch Weglassen ergeben, gilt die Monotonie aus Satz~\ref{thm:conservative}: Das Weglassen kann die Menge $B$ der Freigabehindernisse nur vergrößern.
+\end{satz}
+\begin{proof}
+Die Lesefunktionen bilden fehlende und \texttt{null}-Angaben auf $\bot$ ab und ersetzen sie durch keinen Standardwert; das gilt für Antworten, Qualität, Aktualisierung und erwarteten Verlust. Die Ersetzungen (a) bis (e) des Satzes~\ref{thm:conservative} sind genau diese Abbildungen auf $\bot$. Der Satz liefert die Behauptung.
+\end{proof}
+
+Ausgenommen sind die organisatorischen Nachweise $o$: Fehlt ein Feld unter \texttt{evidence}, gilt es als nicht erklärt ($0$), eine Erklärung ist aber nicht überprüfbar. Auch das ist unverändert gegenüber der Bibliothek.
+
+\begin{bemerkung}[Kein Teilergebnis]
+Für jede Anfrage liefert ein Endpunkt entweder eine vollständige Erfolgsantwort oder einen Fehler; ein Bericht mit nur teilweise ausgewerteten Eingaben wird nicht ausgegeben. Das setzt voraus, dass die Bibliothek ungültige Eingaben ausnahmslos durch einen Eingabefehler meldet. Das ist ihre dokumentierte Vertragsregel; andere Ausnahmen gelten als Programmfehler und führen zu einem Serverfehler (HTTP~500), nicht zu einer scheinbar gültigen Antwort.
+\end{bemerkung}
+
+\subsection{Fehlermodell}
+\label{sec:api-errors}
+Die Schnittstelle unterscheidet fachliche Eingabefehler von Fehlern der Anfrage und von Ausfällen. Tabelle~\ref{tab:api-errors} fasst die Statuscodes zusammen.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Statuscodes und Fehlerschemata der JSON-API}
+\label{tab:api-errors}
+\begin{tabular}{P{0.09\linewidth}P{0.27\linewidth}P{0.50\linewidth}}
+\toprule
+\textbf{Status} & \textbf{Schema} & \textbf{Bedeutung} \\
+\midrule
+200 & Antwortmodell des Endpunkts & Erfolg; bei Berichten auch dann, wenn Freigabehindernisse bestehen. Das Hindernis ist Ergebnis, kein Fehler. \\
+422 & \texttt{error.\allowbreak type}\,=\,\texttt{input\_error} & Fachlich ungültige Eingabe: unbekannte Felder, falsche Typen im Dokument, ungültige Zahlen oder Daten, doppelte Referenzfragen, erklärte messbare Nachweise, übergroße Exponenten. \\
+422 & \texttt{\{"detail":[\ldots]\}} (FastAPI) & Request-Feld fehlt oder hat den falschen Typ, etwa ein Stichtag, der nicht dem Muster \texttt{JJJJ-MM-TT} entspricht. \\
+413 & \texttt{error.\allowbreak type}\,=\,\texttt{payload\_too\_large} & \texttt{Content-Length} überschreitet die Grenze. \\
+400 & \texttt{error.\allowbreak type}\,=\,\texttt{invalid\_header} & \texttt{Content-Length} ist keine ganze Zahl. \\
+503 & \texttt{error.\allowbreak type}\,=\,\texttt{backend\_error} & Der Entscheider des Solvers konnte keine verlässliche Antwort liefern. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Die Trennung von Ergebnis und Fehler ist fachlich wichtig. Ein Freigabebericht mit sieben Freigabehindernissen ist eine erfolgreiche Antwort mit dem Statuscode 200: Die Schnittstelle hat ihre Aufgabe erfüllt, indem sie festgestellt hat, dass das Datennetz für diesen Anwendungsfall nicht ausreicht. Würde man ein Hindernis als HTTP-Fehler melden, vermischte man den Zustand des Datennetzes mit dem Zustand des Dienstes, und Überwachungswerkzeuge würden einen Befund als Störung zählen. Clients, die eine Pipeline anhalten wollen, werten das Feld \texttt{blocked} beziehungsweise \texttt{has\_regression} aus, ähnlich wie die Kommandozeile mit dem Exit-Code 1 signalisiert.
+
+Die Fehlermeldungen nennen den Pfad zur fehlerhaften Stelle (etwa \texttt{use\_case.level}) und bleiben deutsch wie die Bibliothek. Sie enthalten keine Stapelüberwachungen und keine Inhalte der Anfrage über das hinaus, was zur Korrektur nötig ist.
+
+\subsection{Robustheit und Sicherheit}
+\label{sec:api-robust}
+Eine Schnittstelle, die frei strukturierte Dokumente annimmt und exakt rechnet, hat Angriffsflächen, die die Bibliothek allein nicht hat. Die Erweiterung adressiert drei davon und benennt, was sie bewusst nicht leistet.
+
+\paragraph{Übergroße Zahlentexte.}
+Die exakte Arithmetik wandelt Texte wie \texttt{"1e999999999"} in einen Bruch mit einer Milliarde Ziffern um und würde Speicher und Rechenzeit verbrauchen. Die Schnittstelle weist Zahlentexte ab, deren Exponent mehr als drei Ziffern hat; die Prüfung läuft über alle Texte der Spezifikation, der Antworten und der Berichte, iterativ und damit unabhängig von der Verschachtelungstiefe. Sie greift nur bei Texten, die insgesamt eine Zahl mit Exponent sind. Zeichenfolgen, die zufällig ein \emph{e} und Ziffern enthalten, etwa ein SHA-256-Fingerprint, bleiben unberührt. Ein erster Entwurf der Prüfung hat solche Fingerprints fälschlich abgewiesen; der Fehler wurde durch den Test des Berichtsvergleichs entdeckt und ist ein Beispiel dafür, dass der Eingabeschutz selbst getestet werden muss.
+
+\paragraph{Übergroße Anfragen.}
+Anfragen, deren \texttt{Content-Length} die Grenze überschreitet (Standard 1~MiB, einstellbar über eine Umgebungsvariable), werden mit HTTP~413 abgewiesen, bevor der Inhalt gelesen wird. Übertragungen ohne \texttt{Content-Length} (chunked) erfasst diese Schicht nicht; dafür ist ein vorgeschalteter Reverse Proxy zuständig.
+
+\paragraph{Rechenaufwand des Solvers.}
+Der Endpunkt \texttt{POST /integration/select} kodiert das Auswahlproblem für den Entscheider des Referenzprojekts. Dessen Laufzeit wächst stark mit der Zahl der Optionen: In einer Einzelmessung in der Entwicklungsumgebung dauerte die Lösung bei acht Optionen etwa eine Sekunde, bei zehn rund zwei Sekunden und bei zwölf bereits etwa 24 Sekunden. Die Schnittstelle begrenzt daher die Zahl der Optionen auf zehn und Nutzen, Kosten und Budget auf 100\,000 ganzzahlige Einheiten. Die Zahlen sind eine Beobachtung unter bestimmten Bedingungen und kein Laufzeitbeweis; sie begründen die Grenze, nicht eine Garantie. Der Endpunkt ist synchron implementiert und läuft damit in einem Arbeits-Thread des Servers, sodass andere Anfragen nicht blockieren, aber die Auslastung der Arbeits-Threads durch viele gleichzeitige schwere Anfragen bleibt ein Betriebsthema (Ausblick).
+
+\paragraph{Was die Schnittstelle nicht leistet.}
+Sie hat keine Authentifizierung, keine Autorisierung, keine Begrenzung der Anfragerate und keine Transportverschlüsselung. Diese Funktionen gehören in die Betriebsumgebung (Gateway, Reverse Proxy, Identitätsanbieter), nicht in eine Rechenschnittstelle, die möglichst wenig Zustand haben soll. Spezifikationen und Antworten können sensible Unternehmensdaten enthalten; die Zustandslosigkeit verringert das Risiko, weil nichts gespeichert wird, ersetzt aber keinen Schutz auf dem Transportweg und in Protokollen des Betriebs. Die Schnittstelle ist deshalb für den Einsatz im geschützten Netz oder hinter einem Gateway gedacht, nicht für den ungeschützten Betrieb im Internet.
+
+\subsection{Beispiel: Die Fallstudie über die Schnittstelle}
+\label{sec:api-example}
+Das Data Product „Sales Result 360“ der Fallstudie (Abschnitt~\ref{sec:case-study}) dient als durchgehendes Beispiel. Die Spezifikation ist die Beispieldatei des Projekts, die Antworten sind die der Fallstudie: Zur Frage nach der Expressfracht antwortet die KI mit 0 und vollständiger Provenance, die Frage nach dem Produktmix bleibt unbeantwortet, die Rabattfrage wird richtig beantwortet.
+
+\paragraph{Erklärter Anteil.}
+Eine Anfrage an \texttt{POST /evaluation/explained-share} mit den drei Ursachen der Abweichung (Expressfracht 230, Produktmix 150, Rabatte 60 mit erklärten Anteilen 0, 0 und 1) liefert:
+\begin{lstlisting}
+{"explained_share": "3/22", "unexplained_share": "19/22",
+ "explained_amount": "60", "total_effect": "440"}
+\end{lstlisting}
+Das sind die rund 14\,\% der Fallstudie. Dieselbe Zahl liefert \texttt{GET /case-study} mit der Aufteilung der Ursachen.
+
+\paragraph{Gut-genug-Bedingung.}
+Mit Stakes $W=440$ und $\varepsilon=1/20$ beträgt das zulässige Budget 22. Der erwartete Verlust $\bar L=380$ aus Abschnitt~\ref{sec:operationalization} überschreitet es deutlich; \texttt{POST /error-budget/check} antwortet:
+\begin{lstlisting}
+{"limit": "22", "expected_loss": "380",
+ "good_enough": false, "headroom": "-358"}
+\end{lstlisting}
+
+\paragraph{Freigabebericht.}
+Die Anfrage an \texttt{POST /reports} enthält die Spezifikation, die Antworten, den Stichtag 22.~Oktober 2026 und den erwarteten Verlust 380. Die Antwort hat den Statuscode 200 und, in Auszügen, diesen Inhalt:
+\begin{lstlisting}
+{"product": "Sales Result 360", "level": "DECISION_PREPARATION",
+ "missing_links": [["orders", "freight"]],
+ "evaluation": {"pass_rate": "1/6",
+                "provenance_coverage": "2/3", "unanswered": 1},
+ "min_pass_rate": "3/4", "budget_limit": "22",
+ "blocked": true, "blockers": [ ... 7 Eintraege ... ],
+ "fingerprint": "8b2dbd0b..."}
+\end{lstlisting}
+Die sieben Freigabehindernisse sind genau die der Fallstudie in Abschnitt~\ref{sec:operationalization}: Die Kennzahlen sind nicht verknüpft, weil die Verbindung zwischen Auftrag und Fracht fehlt; die Provenance ist unvollständig, weil die Antwort zum Produktmix fehlt; die Qualität des Knotens \texttt{products} ist nicht messbar; das Error Budget ist überschritten; die Knoten \texttt{freight} und \texttt{products} sind nicht aktuell zum Stichtag; und die Bestehensquote $1/6$ liegt unter dem Mindestwert $3/4$. Die Schnittstelle bestätigt damit das Ergebnis der Bibliothek auf der Netzebene.
+
+\paragraph{Regressionsvergleich.}
+Nach dem Anbinden der Frachtdaten und dem Ergänzen der Produktgruppe wird ein zweiter Bericht gebildet. Beide Berichte werden an \texttt{POST /reports/compare} übergeben; die Antwort nennt je Kennzahl die Richtung, die behobenen und die neu hinzugekommenen Hindernisse und das Feld \texttt{has\_regression}. Eine Pipeline kann daran einen Merge oder eine Freigabe knüpfen. Wegen der Zustandslosigkeit speichert der Aufrufer die Berichte selbst, etwa als Artefakte seines Build-Systems.
+
+\paragraph{Fehlerfall.}
+Wird als erwarteter Verlust \texttt{"1e5000"} übergeben, antwortet die Schnittstelle mit HTTP~422 und
+\begin{lstlisting}
+{"error": {"type": "input_error", "message":
+  "expected_loss: Exponenten mit mehr als 3 Ziffern sind nicht zulaessig"}}
+\end{lstlisting}
+und rechnet nicht.
+
+\subsection{Qualitätssicherung}
+\label{sec:api-tests}
+Die Schnittstelle wird wie die Bibliothek mit Tests abgesichert. Die Testsuite des Projekts umfasst 291 Tests; davon prüfen 106 die Schnittstelle, 185 die Bausteine, die Kommandozeile und die Beispiele der Dokumentation. Zeilen- und Zweigabdeckung betragen für \texttt{src/} und für \texttt{web/} jeweils 100\,\%. Vier Testarten sind zu unterscheiden:
+\begin{itemize}
+\item \textbf{Treue-Tests} vergleichen die Antworten mit der Bibliothek und der Kommandozeile: Der Bericht der Schnittstelle ist gleich dem JSON der Kommandozeile, die Markdown-Antworten gleich den Markdown-Texten, die Blocker einer Stufe gleich den Ergebnissen der Freigabelogik. Sie stützen Satz~\ref{thm:api-fidelity}.
+\item \textbf{Verhaltenstests} prüfen die erwarteten Werte der Arbeit, etwa den erklärten Anteil $3/22$ der Fallstudie, die Grenze der Gut-genug-Bedingung, die Posterior-Odds des Bayes-Indikators und die Zahl der Anforderungen je Stufe.
+\item \textbf{Fehlertests} decken jeden Fehlerzweig ab: ungültige Daten, unbekannte Fragen, erklärte messbare Nachweise, doppelte Fragen, übergroße Exponenten, Größenlimit, ungültigen Header und den simulierten Ausfall des Solvers.
+\item \textbf{Vertragstests} prüfen das OpenAPI-Schema: Jede Operation hat Zusammenfassung, Beschreibung, Tag und Fehlerantworten, jedes Feld eine Beschreibung, jeder Tag ist deklariert und benutzt; die Namen der Stufen und Ursachen im Schema stimmen mit den Aufzählungen der Bibliothek überein, und die Version der Schnittstelle gleicht der Projektversion.
+\end{itemize}
+Satz~\ref{thm:api-stateless} wird durch einen Test gestützt, der dieselbe Anfrage vor und nach anderen Anfragen wiederholt und gleiche Antworten verlangt, sowie durch Tests des Fingerprints, der sich bei geänderten Eingaben oder Versionen ändern muss.
+
+Die Abdeckung ist ein Hinweis auf die Vollständigkeit der Prüfung, kein Nachweis der Korrektheit. Ein Zweig kann ausgeführt werden, ohne dass sein Ergebnis fachlich geprüft wird; deshalb vergleichen die Treue- und Verhaltenstests Werte und nicht nur Statuscodes. Ebenso beweisen die Tests nicht, dass die Freigabelogik die Wirklichkeit eines Unternehmens abbildet; sie belegen nur, dass die Schnittstelle die Logik der Arbeit treu wiedergibt.
+
+\subsection{Einsatzszenarien}
+\label{sec:api-use}
+Die folgenden Szenarien zeigen, wie die Schnittstelle in die Abläufe der Arbeit passt. Sie sind Entwurfsvorschläge, keine in der Praxis erprobten Verfahren.
+
+\paragraph{Freigabe-Gate in der Datenpipeline.}
+Nach jeder Änderung am Data Product (neue Quelle, geänderte Definition, neue Version) erzeugt die Pipeline einen Bericht mit \texttt{POST /reports} und vergleicht ihn mit dem letzten gespeicherten Bericht über \texttt{POST /reports/compare}. Eine Regression hält die Änderung an. Das setzt den Gedanken um, dass Regelmäßigkeit Teil der Verantwortung des Data Product Owners ist (Abschnitt~\ref{sec:release}).
+
+\paragraph{Anzeige in Controlling-Werkzeugen.}
+Ein Dashboard fragt \texttt{/reports/cases} ab und zeigt je Referenzfrage Bestehen und Provenance. Die Beteiligten sehen, welche Fragen die KI nicht beantwortet, bevor sie ihrer Antwort auf eine Geschäftsfrage vertrauen. Das entspricht der Forderung, Definition, Quelle und Datenstichtag einzufordern (Abschnitt~\ref{sec:pitfalls}, Nr.~1).
+
+\paragraph{Vorprüfung durch KI-Agenten.}
+Ein Agent, der eine Handlung auslösen soll, ruft \texttt{POST /governance/blockers} mit der Stufe seines Anwendungsfalls auf und führt die Handlung nur aus, wenn die Liste leer ist und ein Mensch die Freigabe erklärt hat. Die Schnittstelle ersetzt dabei nicht die Entscheidung des Use-Case Owners (Abschnitt~\ref{sec:api-formal}); sie stellt nur sicher, dass der Agent die formalisierten Bedingungen kennt und nicht umgeht. Der Aufruf könnte als Werkzeug eines Agenten bereitgestellt werden, etwa über das Model Context Protocol; eine solche Anbindung ist nicht Teil der Umsetzung.
+
+\paragraph{Planung von Datenintegrationen.}
+Die Gruppen \texttt{diagnosis} und \texttt{integration} unterstützen die ökonomische Priorisierung von Datenverbesserungen: Nach einer Abweichung berechnet \texttt{/diagnosis/voi}, ob die Integration einer Quelle ihre Kosten rechtfertigt, und \texttt{/integration/select} wählt aus mehreren Kandidaten die Auswahl mit dem größten Nettonutzen unter einem gemeinsamen Budget.
+
+\subsection{Grenzen der Schnittstelle}
+\label{sec:api-limits}
+Die Schnittstelle übernimmt alle Grenzen der Bibliothek: Erklärte organisatorische Nachweise werden nicht überprüft, die Provenance ist nur formal, nicht inhaltlich geprüft, der erwartete Verlust wird geliefert und nicht geschätzt, der Vergleich kennt kein Messrauschen, und ein Bericht ohne Freigabehindernisse ist keine Freigabe. Hinzu kommen Grenzen, die aus der Netzschicht folgen.
+\begin{itemize}
+\item Die Schnittstelle speichert nichts. Historie, Versionierung von Berichten und ein Prüfpfad (Audit-Log) liegen beim Aufrufer.
+\item Es gibt keine Authentifizierung, Autorisierung und Ratenbegrenzung (Abschnitt~\ref{sec:api-robust}).
+\item Anbindungen an konkrete KI-Anwendungen sind nicht enthalten; die Antworten der KI müssen dem Verfahren als Dokument übergeben werden. Die Bibliothek enthält dafür die Schnittstelle des Antwortgebers, die Schnittstelle bietet sie nicht an.
+\item Die Größenbegrenzung betrifft nur die angekündigte Länge, und die Rechenzeit der Endpunkte außer der Auswahl von Datenquellen ist nicht eigens begrenzt. Sehr große Spezifikationen werden zwar korrekt, aber langsam verarbeitet.
+\item Die Version 1 des Pfades \texttt{/api/v1} verspricht nicht, dass spätere Versionen der Arbeit die Berichtsstruktur nicht ändern; für gespeicherte Berichte ist daher der Fingerprint samt Versionen aufzubewahren.
+\end{itemize}
+
+\FloatBarrier
 
 \section{Checkliste, Diskussion, Schlussfolgerung}
 
@@ -725,17 +987,53 @@ Vor der Verwendung einer KI-Antwort sollten mindestens die folgenden Punkte gepr
 \end{enumerate}
 Ein fehlender Nachweis ist selbst ein relevantes Ergebnis: Er bedeutet nicht automatisch, dass die Antwort falsch ist, aber dass sie nicht ohne weitere Prüfung für eine höher riskante Verwendung freigegeben werden sollte.
 
-\subsection{Diskussion, Grenzen und Ausblick}
+\subsection{Diskussion und Grenzen}\label{sec:discussion}
 Die formalen Modelle vereinfachen reale Unternehmensprozesse bewusst: Einflussbeziehungen sind nicht immer linear, Referenzwerte können selbst unsicher sein und Ursachen interagieren. Auch die im Fallbeispiel genannten Beträge sind eine illustrative Webinar-Fallstudie und keine unabhängig erhobene Unternehmensanalyse. Die angegebenen Reife- und Fehlermaße müssen daher als fallbezogene Entscheidungshilfen verstanden werden.
 
 Eine weitere Grenze ist die Auswahl der Testfragen. Ein hoher Messwert für leicht beantwortbare oder häufige Fragen sagt wenig über seltene, aber folgenreiche Ausnahmen aus. Testsets sollten deshalb nach möglichen Auswirkungen geschichtet und auch nach Änderungen an Datenquellen, Definitionen, Modellen oder Berechtigungen erneut ausgeführt werden. Ebenso ist eine Abweichung nicht automatisch ein Beleg gegen das Datennetz: Sie kann auf einen Fehler in der internen Analyse, eine andere zulässige Definition oder einen inzwischen veränderten Datenstand hinweisen.
 
+Die Schnittstelle aus Abschnitt~\ref{sec:api} verändert diese Grenzen nicht, sondern macht sie leichter sichtbar: Sie liefert exakt dieselben Ergebnisse wie die Bibliothek (Satz~\ref{thm:api-fidelity}), prüft aber ebenfalls nur, was formalisiert ist. Eine einfach erreichbare Prüfung birgt zudem das Risiko, dass ein formal bestandener Freigabebericht als inhaltliche Garantie missverstanden wird.
+
 Die wirtschaftliche Logik bleibt dennoch belastbar: Datenverbesserungen sollten dort priorisiert werden, wo ihr erwarteter zusätzlicher Nutzen die Integrations- und Betriebskosten rechtfertigt. In der Praxis sind dafür kontrollierte Experimente, historische Was-wäre-wenn-Analysen und eine nachvollziehbare Messung der Folgen nötig. Die Schätzung dieses Nutzens in realen Geschäftsfällen bleibt eine zentrale offene Aufgabe.
+
+\subsection{Ausblick}\label{sec:outlook}
+Der Ausblick gliedert sich in fünf Richtungen, die auf den vorhandenen Bausteinen aufbauen: empirische Validierung, Erweiterung des Modells, Ausbau der Schnittstelle, organisatorische Einbettung und Öffnung für KI-Agenten. Tabelle~\ref{tab:roadmap} ordnet sie nach Voraussetzung und erwartetem Ertrag.
+
+\subsubsection{Empirische Validierung}
+Die wichtigste offene Aufgabe ist die Überprüfung an realen Fällen. Nötig sind Fallstudien in Unternehmen unterschiedlicher Größe (vgl.\ Abschnitt~\ref{sec:company-size}), in denen Freigabebericht, Fehlerbudget und Bestehensquote über mehrere Zyklen erhoben und mit tatsächlich eingetretenen Fehlentscheidungen verglichen werden. Erst dann lässt sich beurteilen, ob die Vertrauensstufen Fehler tatsächlich trennen und ob die gewählten Schwellen $\theta$ sinnvoll sind. Ergänzend sollten Testsätze nach Auswirkungen geschichtet und der Einfluss des Testsatzes auf $p$ gesondert gemessen werden, damit eine Änderung des Datennetzes von einer Änderung der Referenzfragen unterscheidbar wird (vgl.\ Bemerkung zu den Grenzen des Vergleichs).
+
+\subsubsection{Erweiterung des Modells}
+Das Modell rechnet exakt und kennt keine Toleranz. Drei Erweiterungen liegen nahe: erstens ein statistischer Vergleich, der bei kleinen Testmengen Messrauschen berücksichtigt (etwa Konfidenzintervalle für $p$); zweitens nichtlineare und interagierende Einflussgrößen, für die der Anhang bereits eine Skizze enthält; drittens eine abgestufte Aktualität, bei der Daten nicht nur aktuell oder nicht aktuell sind, sondern ihr Alter in die Fehlerabschätzung eingeht. Auch die Schätzung der mittleren Stakes $\bar L$ sollte methodisch abgesichert werden, da das Fehlerbudget linear von ihr abhängt.
+
+\subsubsection{Ausbau der Schnittstelle}
+Die Schnittstelle ist bewusst zustandslos. Für den dauerhaften Betrieb sind folgende Ergänzungen sinnvoll: eine Authentifizierung und Rollenprüfung entsprechend den Verantwortlichkeiten, eine revisionssichere Ablage der Freigabeberichte samt Fingerprint, asynchrone Verarbeitung für den lösungsintensiven Teil, dessen Laufzeit exponentiell wächst und derzeit durch Größenlimits begrenzt wird, sowie Webhooks, die bei einer Regression automatisch eine Meldung auslösen. Eine solche Ablage würde die Zustandslosigkeit nicht aufheben, wenn sie als getrennte Komponente vor oder hinter der Schnittstelle liegt und deren Berechnungen unverändert lässt.
+
+\subsubsection{Organisatorische Einbettung}
+Die Berichte entfalten Wirkung erst, wenn sie in bestehende Abläufe eingebunden sind: als Prüfschritt in der Auslieferungskette (Freigabe nur bei bestandener Prüfung), als regelmäßiger Bericht an die benannten Verantwortlichen und als Eingang in Governance-Gremien. Hier ist offen, wie viel Automatisierung der Freigabe vertretbar ist; bei hohen Stakes bleibt die menschliche Entscheidung maßgeblich, die Schnittstelle liefert dafür den Nachweis, nicht das Urteil.
+
+\subsubsection{Öffnung für KI-Agenten}
+Da die Schnittstelle ein maschinenlesbares Schema (OpenAPI) bereitstellt, können KI-Agenten sie als Werkzeug aufrufen, etwa über das Model Context Protocol. Ein Agent könnte vor einer Antwort prüfen, ob die benötigten Nachweise vorliegen, und andernfalls die Antwort als vorläufig kennzeichnen. Das verlagert die Gegenprüfung in den Antwortprozess selbst. Offen bleibt, wie sich verhindern lässt, dass ein Agent die Prüfung lediglich zur Rechtfertigung nutzt; die konservative Eigenschaft (Satz~\ref{thm:api-conservative}) ist dafür eine notwendige, aber keine hinreichende Bedingung.
+
+\begin{table}[H]
+\centering
+\caption{Ausblick: Richtungen, Voraussetzungen und erwarteter Ertrag}\label{tab:roadmap}
+\begin{tabular}{P{3.6cm}P{4.6cm}P{5.8cm}}
+\toprule
+Richtung & Voraussetzung & Erwarteter Ertrag \\
+\midrule
+Empirische Validierung & Zugang zu Fallstudien, historische Fehlerdaten & Belastbare Schwellen, Prüfung der Vertrauensstufen \\
+Modellerweiterung & Statistische Methoden, Daten zu Aktualität & Robuster Vergleich bei kleinen Testmengen \\
+Ausbau der Schnittstelle & Betriebsumgebung, Rollenkonzept & Revisionssichere, automatisierbare Freigabe \\
+Organisatorische Einbettung & Benannte Verantwortliche, Governance & Verbindliche Nutzung des Berichts \\
+Öffnung für KI-Agenten & Maschinenlesbares Schema, Agenten-Anbindung & Gegenprüfung im Antwortprozess \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{Schlussfolgerung}
 Die Frage „Wann ist das Datennetz gut genug für KI?“ hat keine allgemeingültige, absolute Schwelle. Gut genug ist es für einen bestimmten Anwendungsfall, wenn relevante Einflussgrößen verknüpft und definiert sind, Qualität und Aktualität bekannt sind, Antworten nachvollziehbare Provenance tragen und der verbleibende Fehler im Verhältnis zu den Stakes vertretbar ist.
 
-Aus der Fallstudie und dem formalen Modell folgen sechs praktische Kernaussagen:
+Aus der Fallstudie und dem formalen Modell folgen sieben praktische Kernaussagen:
 \begin{enumerate}
 \item Die Qualität einer KI-Erklärung hängt maßgeblich von den verfügbaren Daten, ihren Verbindungen und ihrer fachlichen Bedeutung ab, nicht allein vom Modell.
 \item „Gut genug“ ist eine wirtschaftliche und anwendungsbezogene Bedingung: Je folgenreicher die Entscheidung, desto stärker müssen Fehler begrenzt und belegt werden.
@@ -743,6 +1041,7 @@ Aus der Fallstudie und dem formalen Modell folgen sechs praktische Kernaussagen:
 \item KI kann bereits heute als Hinweis und Gegenprüfung nützlich sein. Eine Abweichung zeigt mögliche Datenlücken auf, kann aber ebenso eine unvollständige eigene Analyse offenlegen.
 \item Ein Data Product schafft eine wiederverwendbare Grundlage für verschiedene Anwendungen; der Aufwand für gemeinsame Daten und Definitionen kann dadurch mehrfach Nutzen stiften.
 \item Vor einem Go-live müssen fachliche Definition, technische Lieferung und Freigabe des konkreten Anwendungsfalls jeweils einer verantwortlichen Person zugeordnet sein.
+\item Das Prüfverfahren lässt sich als zustandslose, vollständig getestete Schnittstelle bereitstellen, ohne seine Ergebnisse zu verändern; so wird die Prüfung wiederholbar und in Abläufe einbindbar, ersetzt aber nicht die fachliche Verantwortung.
 \end{enumerate}
 
 \begin{quote}
@@ -767,6 +1066,10 @@ Die Arbeit basiert auf den Ideen und Folien von ai-data-network-economic-approac
 \item[Gegenprüfung (Cross-check)] Vergleich einer KI-Antwort mit eigener Analyse, Strategie oder fachlich geprüfter Referenz.
 \item[MCP] Model Context Protocol; ein Standard, über den KI-Anwendungen auf Daten und Werkzeuge zugreifen können.
 \item[Value of Information (VOI)] Erwarteter zusätzlicher Nutzen einer Information oder Datenverbesserung im Vergleich zu ihren Kosten.
+\item[API (Schnittstelle)] Maschinenlesbarer Zugang zum Prüfverfahren über HTTP mit JSON-Ein- und -Ausgaben.
+\item[FastAPI] Python-Framework für Web-Schnittstellen; erzeugt aus den Datenverträgen automatisch eine OpenAPI-Beschreibung.
+\item[OpenAPI] Standardisierte, maschinenlesbare Beschreibung einer HTTP-Schnittstelle.
+\item[Zustandslos] Jede Anfrage enthält alle Eingaben; der Dienst speichert nichts zwischen Anfragen.
 \end{description}
 
 \section{Formale Beweise und Erweiterungen}
