@@ -29,7 +29,7 @@ Die Arbeit verbindet ein formales Modell von Datennetzen und Data Products mit e
 - [Quellen und weiterführende Arbeiten](#quellen-und-weiterführende-arbeiten)
 - [Software und Tests](#software-und-tests)
 - [Prüfwerkzeug und Python-API (Operationalisierung)](#prüfwerkzeug-und-python-api-operationalisierung)
-- [JSON-API (FastAPI)](#json-api-fastapi)
+- [JSON API](#json-api)
 - [Erwerb](#erwerb)
 
 ## Überblick
@@ -249,7 +249,7 @@ Auch die vier Vertrauensstufen sind ein konzeptioneller Rahmen. Sie definieren k
 Die Arbeit führt die folgenden Quellen im Literaturverzeichnis:
 
 1. **Michael Sullmann (BE-terna).** Webinar *Data Product and AI in Controlling*, Oktober 2026. Grundlage für die im Text als Webinar-Angaben gekennzeichneten Inhalte und die illustrative Fallstudie.
-2. **Stephan Epp.** *Wirtschaftliche Konsequenzen eines effizienten SAT-Solvers*, 12. Oktober 2026. [Repository](https://github.com/naphz86/subgraph-sat-solver-econ).
+2. **Stephan Epp.** *Wirtschaftliche Konsequenzen eines effizienten SAT-Solvers*, 12. Oktober 2026. [Repository](https://github.com/naphets86/subgraph-sat-solver-econ).
 3. **Stephan Epp.** *Wirtschaftssysteme unter Unsicherheit*, 3. September 2026. [Repository und Wissenschaftsordner](https://github.com/naphets86/odd/tree/main/science/uncrtecos).
 
 Die Arbeiten [2] und [3] sind ergänzende wissenschaftliche Vorarbeiten des Autors. Ihre Nennung bedeutet nicht, dass die vorliegende Arbeit ein SAT-Solver- oder ein Wirtschaftssystem-Simulationspaket enthält.
@@ -273,13 +273,13 @@ Die Arbeiten [2] und [3] sind ergänzende wissenschaftliche Vorarbeiten des Auto
 | `report` | Freigabebericht: abgeleitete Nachweise, Freigabehindernisse, Fingerprint, Markdown/JSON |
 | `compare` | Regressionsvergleich zweier gespeicherter Berichte |
 | `cli` | Kommandozeile `report` und `compare` |
-| `web/` (eigenes Paket) | zustandslose FastAPI-JSON-API über allen Bausteinen, siehe [JSON-API](#json-api-fastapi) |
+| `web/` (eigenes Paket) | zustandslose FastAPI-JSON-API über allen Bausteinen, siehe [JSON API](#json-api) |
 
 Die Verwendung der Module `spec`, `provider`, `report`, `compare` und `cli` (Spezifikation, Antworten, Freigabebericht, Monitoring) steht mit vielen Beispielen im Abschnitt [Prüfwerkzeug und Python-API](#prüfwerkzeug-und-python-api-operationalisierung).
 
 ### Wiederverwendung von subgraph-sat-solver-econ
 
-Entscheider, Schaltkreisbausteine und die Formel der Rechenlücke werden nicht neu geschrieben, sondern aus [`subgraph-sat-solver-econ`](https://github.com/naphz86/subgraph-sat-solver-econ) importiert (`subgraph_sat_solver_econ`): `integration` formuliert nur das Problem und nutzt `Problem`, `maximize` und `DpllBackend`; `evaluation` berechnet den erklärten Anteil mit `computation_gap` und `total_output`. Die Abhängigkeit steht in `pyproject.toml`. Damit das Referenzprojekt unter diesem Namen importierbar ist, braucht es dort die Paketabbildung `package-dir = { subgraph_sat_solver_econ = "src" }` (siehe dessen `pyproject.toml`).
+Entscheider, Schaltkreisbausteine und die Formel der Rechenlücke werden nicht neu geschrieben, sondern aus [`subgraph-sat-solver-econ`](https://github.com/naphets86/subgraph-sat-solver-econ) importiert (`subgraph_sat_solver_econ`): `integration` formuliert nur das Problem und nutzt `Problem`, `maximize` und `DpllBackend`; `evaluation` berechnet den erklärten Anteil mit `computation_gap` und `total_output`. Die Abhängigkeit steht in `pyproject.toml`. Damit das Referenzprojekt unter diesem Namen importierbar ist, braucht es dort die Paketabbildung `package-dir = { subgraph_sat_solver_econ = "src" }` (siehe dessen `pyproject.toml`).
 
 ### Installieren und testen
 
@@ -1035,7 +1035,7 @@ Der Aufruf aus Python entspricht `aidataeco.cli.main([...])` und liefert den Exi
 
 Die Definitionen und Beweise zu Freigabehindernissen, Antitonie, Stufenmonotonie, Reproduzierbarkeit und Regressionsvergleich stehen in der Arbeit im Abschnitt „Operationalisierung“.
 
-## JSON-API (FastAPI)
+## JSON API
 
 `web/` stellt alle Bausteine als zustandslose JSON-API bereit (Version 2.0.0, identisch mit der Projektversion in der `pyproject.toml`). Jede Anfrage enthält ihre Eingaben vollständig, auch den Stichtag; es gibt keine Sitzung, keinen serverseitigen Zustand und keinen Zugriff auf die Systemuhr. Alle Rechnungen sind exakt (Brüche). `src/` wird dafür nicht verändert.
 
@@ -1070,11 +1070,11 @@ Die Endpunkte (Präfix `/api/v1`):
 | `POST /experiments/fingerprint`; `GET /experiments/versions` | Experimentprotokoll und Versionen |
 | `GET /case-study` | Fallstudie „Warum sinkt die Marge?“ |
 
-Zahlen sind JSON-Zahlen oder Texte (`"3/20"`, `"0.15"`); Ergebnisse stehen als Bruch-Text. Spezifikation, Antworten und Berichte haben dieselben Schlüssel wie die Dateien der Kommandozeile. Ungültige Eingaben beantwortet die API mit HTTP 422 und `{"error":{"type":"input_error","message":"..."}}`, ungültige Feldtypen im FastAPI-Schema `detail`; Anfragen über der Größengrenze (`AIDATAECO_API_MAX_BODY_BYTES`, Standard 1 MiB) mit HTTP 413 und einen Solver-Ausfall mit HTTP 503. Für einen reproduzierbaren Fingerprint im Bericht `versions` mitgeben. Ein Bericht ohne Freigabehindernisse ist auch hier keine Freigabe. Weitere Einzelheiten und die Testübersicht stehen in [`web/README.md`](web/README.md).
+Zahlen sind JSON-Zahlen oder Texte (`"3/20"`, `"0.15"`); Ergebnisse stehen als Bruch-Text. Spezifikation, Antworten und Berichte haben dieselben Schlüssel wie die Dateien der Kommandozeile. Ungültige Eingaben beantwortet die API mit HTTP 422 und `{"error":{"type":"input_error","message":"..."}}`, ungültige Feldtypen im FastAPI-Schema `detail`; Anfragen über der Größengrenze (`AIDATAECO_API_MAX_BODY_BYTES`, Standard 1 MiB) mit HTTP 413 und einen Solver-Ausfall mit HTTP 503. Für einen reproduzierbaren Fingerprint im Bericht `versions` mitgeben. Ein Bericht ohne Freigabehindernisse ist auch hier keine Freigabe.
 
 ## Erwerb
 
-Der Preis für diese Software beträgt 27.145.000,00 EUR.
+Der Preis für diese Software beträgt 29.145.000,00 EUR.
 
 ### Zahlungsinformationen
 
