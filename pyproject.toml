@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aidataeco"
-version = "2.0.0"
+version = "3.0.0"
 description = "Wann ist das Datennetz gut genug für KI? Ausführbares Modell zur wissenschaftlichen Arbeit"
 authors = [
     { name = "Stephan Epp" }

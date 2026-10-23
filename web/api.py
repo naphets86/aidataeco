@@ -49,7 +49,7 @@ from .schemas import (MAX_INTEGRATION_OPTIONS, MAX_INTEGRATION_VALUE, BayesUpdat
                       SpecValidationResponse, ValidationErrorResponse, VersionsResponse, VoiRequest, VoiResponse)
 
 API_PREFIX = "/api/v1"
-API_VERSION = "2.0.0"
+API_VERSION = "3.0.0"
 #: Standardgrenze für die Request-Größe; überschreibbar über ``AIDATAECO_API_MAX_BODY_BYTES``.
 DEFAULT_MAX_BODY_BYTES = 1_048_576
 
