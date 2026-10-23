@@ -14,6 +14,9 @@ dependencies = [
     # Wiederverwendeter Entscheider-, Schaltkreis- und Wohlfahrtscode (Referenzprojekt).
     # numpy und matplotlib bringt das Referenzprojekt selbst mit; sie werden hier nicht doppelt gepflegt.
     "subgraph-sat-solver-econ @ git+https://github.com/naphets86/subgraph-sat-solver-econ.git",
+    # JSON-API (web/api.py)
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
 ]
 
 [project.optional-dependencies]
@@ -26,18 +29,20 @@ dev = [
     "pytest-cov",
     "coverage",
     "pyyaml",
+    "httpx",  # vom FastAPI-TestClient der API-Tests benötigt
 ]
 
 [project.scripts]
 aidataeco = "aidataeco.cli:main"
+aidataeco-api = "web.api:run"
 
 [tool.setuptools]
 # Importname `aidataeco`: `src` ist als Paketname mehrdeutig (auch das Referenzprojekt nutzt ihn).
-packages = ["aidataeco"]
-package-dir = { aidataeco = "src" }
+packages = ["aidataeco", "web"]
+package-dir = { aidataeco = "src", web = "web" }
 
 [tool.coverage.run]
-source = ["src"]
+source = ["src", "web"]
 branch = true
 omit = [
     "tests/*",
@@ -50,7 +55,7 @@ omit = [
 minversion = "6.0"
 testpaths = ["tests"]
 pythonpath = [".", "src"]
-addopts = "-q --cov=src --cov-report=html:doc/coverage --cov-report=term-missing"
+addopts = "-q --cov=src --cov=web --cov-report=html:doc/coverage --cov-report=term-missing"
 markers = [
     "unit: unit test",
     "integration: component integration test",

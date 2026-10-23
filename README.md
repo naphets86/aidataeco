@@ -3,7 +3,7 @@
 **Ein ökonomischer und formaler Ansatz zur verantwortbaren Nutzung von KI in Unternehmen**
 
 [![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB)](https://www.python.org/)
-[![Tests](https://img.shields.io/badge/Tests-185%20passed-4c1)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-291%20passed-4c1)](tests/)
 [![Test Coverage](https://img.shields.io/badge/Test%20Coverage-100%25-brightgreen)](doc/coverage/index.html)
 [![scicov](https://img.shields.io/badge/scicov-10-ff69b4)](doc/coverage/index.html)
 
@@ -29,6 +29,7 @@ Die Arbeit verbindet ein formales Modell von Datennetzen und Data Products mit e
 - [Quellen und weiterführende Arbeiten](#quellen-und-weiterführende-arbeiten)
 - [Software und Tests](#software-und-tests)
 - [Prüfwerkzeug und Python-API (Operationalisierung)](#prüfwerkzeug-und-python-api-operationalisierung)
+- [JSON-API (FastAPI)](#json-api-fastapi)
 - [Erwerb](#erwerb)
 
 ## Überblick
@@ -272,6 +273,7 @@ Die Arbeiten [2] und [3] sind ergänzende wissenschaftliche Vorarbeiten des Auto
 | `report` | Freigabebericht: abgeleitete Nachweise, Freigabehindernisse, Fingerprint, Markdown/JSON |
 | `compare` | Regressionsvergleich zweier gespeicherter Berichte |
 | `cli` | Kommandozeile `report` und `compare` |
+| `web/` (eigenes Paket) | zustandslose FastAPI-JSON-API über allen Bausteinen, siehe [JSON-API](#json-api-fastapi) |
 
 Die Verwendung der Module `spec`, `provider`, `report`, `compare` und `cli` (Spezifikation, Antworten, Freigabebericht, Monitoring) steht mit vielen Beispielen im Abschnitt [Prüfwerkzeug und Python-API](#prüfwerkzeug-und-python-api-operationalisierung).
 
@@ -288,7 +290,7 @@ pip install -e ".[dev]"
 pytest
 ```
 
-`pytest` führt alle Tests aus und erzeugt den Coverage-Bericht (Zeilen und Zweige) als HTML unter `doc/coverage/index.html`. Der Bericht ist ein Build-Artefakt und wird bei Bedarf neu erzeugt.
+`pytest` führt alle Tests aus (Bausteine in `src/`, Kommandozeile, README-Beispiele und JSON-API in `web/`) und erzeugt den Coverage-Bericht (Zeilen und Zweige für `src/` und `web/`) als HTML unter `doc/coverage/index.html`. Der Bericht ist ein Build-Artefakt und wird bei Bedarf neu erzeugt.
 
 ## Prüfwerkzeug und Python-API (Operationalisierung)
 
@@ -1028,10 +1030,47 @@ Der Aufruf aus Python entspricht `aidataeco.cli.main([...])` und liefert den Exi
 - Aktualität wird allein aus den angegebenen Aktualisierungsdaten abgeleitet.
 - Der erwartete Verlust wird geliefert, nicht geschätzt.
 - Der Vergleich kennt keine Toleranz und kein Messrauschen; die Bestehensquote ist nur bei unveränderten Referenzfragen vergleichbar.
-- Konkrete KI-Adapter (etwa MCP) und eine Web-Schicht (FastAPI) sind bewusst nicht Teil des Kerns.
+- Konkrete KI-Adapter (etwa MCP) sind bewusst nicht Teil des Kerns. Die Web-Schicht (FastAPI) liegt getrennt in `web/` und ruft nur die öffentlichen Funktionen aus `src/` auf.
 - Die Stufen sind ein konzeptioneller Rahmen und keine Norm; ein Bericht ohne Hindernisse ist keine Freigabe.
 
 Die Definitionen und Beweise zu Freigabehindernissen, Antitonie, Stufenmonotonie, Reproduzierbarkeit und Regressionsvergleich stehen in der Arbeit im Abschnitt „Operationalisierung“.
+
+## JSON-API (FastAPI)
+
+`web/` stellt alle Bausteine als zustandslose JSON-API bereit (Version 2.0.0, identisch mit der Projektversion in der `pyproject.toml`). Jede Anfrage enthält ihre Eingaben vollständig, auch den Stichtag; es gibt keine Sitzung, keinen serverseitigen Zustand und keinen Zugriff auf die Systemuhr. Alle Rechnungen sind exakt (Brüche). `src/` wird dafür nicht verändert.
+
+Nach der Installation (`pip install -e ".[dev]"`, siehe [Installieren und testen](#installieren-und-testen)) startet der Server mit Uvicorn:
+
+```bash
+uvicorn web.api:app --reload
+```
+
+Alternativ startet `aidataeco-api` den Server ohne Reload. Standardmäßig lauscht er auf `127.0.0.1:8000`; Host und Port lassen sich über `AIDATAECO_API_HOST` und `AIDATAECO_API_PORT` setzen. Die interaktive OpenAPI-Dokumentation liegt unter `http://127.0.0.1:8000/docs`.
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/reports \
+  -H 'Content-Type: application/json' \
+  -d '{"spec": {...}, "answers": {...}, "today": "2026-10-22", "expected_loss": 5}'
+```
+
+Die Endpunkte (Präfix `/api/v1`):
+
+| Endpunkt | Aufgabe |
+|---|---|
+| `GET /health`, `GET /options` | Status; Stufen, Nachweise, Abweichungsursachen und Eingabegrenzen |
+| `POST /specs/validate` | Spezifikation streng lesen und zusammenfassen |
+| `POST /reports`, `/reports/markdown` | Freigabebericht als JSON (wie `aidataeco report --format json`) oder Markdown |
+| `POST /reports/cases` | Antworten je Referenzfrage auswerten (Bestehen, Provenance) |
+| `POST /reports/compare`, `/reports/compare/markdown` | zwei Berichte vergleichen; Regression ja oder nein |
+| `POST /evaluation/pass-rate`, `/explained-share`, `/completeness`, `/freshness` | Bestehensquote, erklärter Anteil, Vollständigkeit, Aktualität |
+| `POST /error-budget/check`, `/linear-loss`, `/decomposition`, `/missing-bias`, `/lipschitz-bound` | Gut-genug-Bedingung, Fehlerzerlegung, Schranken |
+| `POST /diagnosis/posterior`, `/bayes-update`, `/voi`, `/deviations`; `GET /diagnosis/causes` | Bayes-Indikator, Lern-Loop, VOI-Bedingung, Abweichungsursachen |
+| `GET /governance/levels`; `POST /governance/blockers` | Vertrauensstufen und Freigabehindernisse |
+| `POST /integration/select` | Datenquellen unter Budget und Abhängigkeiten auswählen (höchstens 10 Optionen) |
+| `POST /experiments/fingerprint`; `GET /experiments/versions` | Experimentprotokoll und Versionen |
+| `GET /case-study` | Fallstudie „Warum sinkt die Marge?“ |
+
+Zahlen sind JSON-Zahlen oder Texte (`"3/20"`, `"0.15"`); Ergebnisse stehen als Bruch-Text. Spezifikation, Antworten und Berichte haben dieselben Schlüssel wie die Dateien der Kommandozeile. Ungültige Eingaben beantwortet die API mit HTTP 422 und `{"error":{"type":"input_error","message":"..."}}`, ungültige Feldtypen im FastAPI-Schema `detail`; Anfragen über der Größengrenze (`AIDATAECO_API_MAX_BODY_BYTES`, Standard 1 MiB) mit HTTP 413 und einen Solver-Ausfall mit HTTP 503. Für einen reproduzierbaren Fingerprint im Bericht `versions` mitgeben. Ein Bericht ohne Freigabehindernisse ist auch hier keine Freigabe. Weitere Einzelheiten und die Testübersicht stehen in [`web/README.md`](web/README.md).
 
 ## Erwerb
 
